@@ -30,14 +30,14 @@ def read_dataset(folder, split):
 def preprocess_dataset(text_list: list[str]):
     """
     Return the list of sentences after preprocessing. Example:
-    >>> preprocess_dataset(['the quick brown fox #HASTAG-1234 @USER-XYZ'])
+    >>> preprocess_dataset(['The quick Brown fOx #HASTAG-1234 @USER-XYZ'])
     ['the quick brown fox']
-    removes:
+    makes everything lowercase and removes:
     - user tags
     - hashtags
     - links
     - punctuation
-    and tokenizes
+    and then tokenizes
     """
     preprocessed_text_list = []
     for tweet in text_list:
@@ -45,7 +45,7 @@ def preprocess_dataset(text_list: list[str]):
                             if not word.startswith("@") # remove tags
                             and not word.startswith("#") # remove hashtags
                             and not word.startswith("http") # remove links
-                        ])
+                        ]).lower() # de-capitalize
         tweet = re.sub(r'[^\w\s]', '', tweet) # remove anything that is not a word or whitespace (punctuation and emojis)
         tweet = tweet.split() # tokenize
         preprocessed_text_list.append(tweet)
