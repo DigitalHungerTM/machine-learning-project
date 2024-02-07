@@ -57,10 +57,11 @@ def preprocess_dataset(text_list: list[str]):
 ##################################################################
 
 
-def evaluate(true_labels, predicted_labels):
+def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     """
     Print accuracy, precision, recall and f1 metrics for each classes and macro average.
     >>> evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0])
+    (above example will run if no arguments are passed)
     accuracy: 0.6
     precision: [1. , 1. , 0.5, 0. ]
     recall: [0.5, 1. , 1. , 0. ]
@@ -70,16 +71,40 @@ def evaluate(true_labels, predicted_labels):
     precision: 0.625
     recall: 0.625
     f1: 0.583
-
-    accuracy: how often is the correct class predicted (percentage)
-    for every class: how often is this class predicted correctly
     """
-    # get all unique classes
-    classes = tuple(set(true_labels))
     
     confusion_matrix = metrics.confusion_matrix(y_true=true_labels, y_pred=predicted_labels)
 
+    # accuracy
+    accuracy = confusion_matrix.diagonal().sum() / confusion_matrix.sum()
+
+    # precision
+    precision = confusion_matrix.diagonal() / confusion_matrix.sum(axis = 0)
+    macro_precision = np.mean(precision)
+
+    # recall
+    recall = confusion_matrix.diagonal() / confusion_matrix.sum(axis = 1)
+    macro_recall = np.mean(recall)
+
+    # f1 score
+    f1 = np.nan_to_num(2 * (precision * recall) / (precision + recall))
+    macro_f1 = np.mean(f1)
+
     print('***** Evaluation *****')
+    # do some nice string formatting
+    print(
+        f"""
+            accuracy:  {np.round(accuracy, 3)}
+            precision: {np.round(list(precision), 3)}
+            recall:    {np.round(list(recall), 3)}
+            f1:        {np.round(list(f1), 3)}
+
+            macro avg:
+            precision: {np.round(macro_precision, 3)}
+            recall:    {np.round(macro_recall, 3)}
+            f1:        {np.round(macro_f1, 3)}
+        """
+    )
 
 
 def train_test(classifier='svm'):
