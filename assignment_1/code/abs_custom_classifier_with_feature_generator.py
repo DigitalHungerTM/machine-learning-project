@@ -75,9 +75,10 @@ class CustomClassifier(abc.ABC):
         """
         :param `text_list`: list of preprocessed, tokenized tweets
         :param `n`: length of gram in N-Hot encoded array, default 1
+        :param `vocab`: vocabulary of n-grams, `n` should be the same as that used by `vocab`,
+            default is None, if not set, `vocab` will be generated from `text_list`
         :return `features_array`: 2D, N-Hot encoded numpy array of features per tweet
-        :return `vocab`: array of unique ngrams in all of text_list, default is None,
-            if `vocab` is not set, it will be generated from `text_list`
+        :return `vocab`: array of unique ngrams in all of text_list
         """
         assert n >= 1, f'{self.get_features.__qualname__}: n should be 1 or larger'
         
