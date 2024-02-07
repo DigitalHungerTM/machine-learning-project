@@ -23,7 +23,7 @@ class CustomClassifier(abc.ABC):
         generates a vocab for a list of tweets according to the ngram value
         
         :param `text_list`: list of tokenized tweets
-        :param `n`: number of tokens in ngram, defaults to 1
+        :param `n`: number of tokens in ngram
         :return `vocab`: ngram vocabulary of the tweets list
         """
 
@@ -48,7 +48,7 @@ class CustomClassifier(abc.ABC):
         'ngram-ifies' the tweets in the `text_list`
         
         :param `text_list`: list of tweets
-        :param `n`: number of tokens in ngram, defaults to 1
+        :param `n`: number of tokens in ngram
         :return `ngram_tweet_list`: list of ngram-ified tweets
         """
 
