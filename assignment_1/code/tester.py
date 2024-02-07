@@ -19,18 +19,21 @@ def main():
     ### feature getter ###
     cc = CustomClassifier()
     
-    # training data
+    # reading data
+    # train
     train_texts, train_labels = read_dataset("data", "CT22_dutch_1B_claim_train")
     p_train_texts = preprocess_dataset(train_texts)
-    # generate a vocabulary on the train data
-    vocab = cc.gen_vocab(p_train_texts, n=N)
-    # N-hot encode train texts on the vocabulary
-    train_features = cc.get_features(p_train_texts, vocab=vocab, n=N)
-
-    # testing data
+    # test
     test_texts, true_test_labels = read_dataset("data", "CT22_dutch_1B_claim_dev_test")
     p_test_texts = preprocess_dataset(test_texts)
-    # N-hot encode test texts on the vocabulary
+
+    # generate a vocabulary on the train data
+    vocab = cc.gen_vocab(p_train_texts, n=N)
+    
+    # N-hot encoding
+    # train
+    train_features = cc.get_features(p_train_texts, vocab=vocab, n=N)
+    # test
     test_features = cc.get_features(p_test_texts, vocab=vocab, n=N)
 
     # print nicely
@@ -43,24 +46,27 @@ number of features:    {len(train_features[0])}
 test set
 number of features:    {len(test_features[0])}
 
-preprocessing done, fitting and predicting...
+preprocessing done, fitting...
 """
     )
+
 
     ### SVM classifier fitter ###
     svm = SVMClassifier()
     svm.fit(train_features, train_labels)
 
+    print("fitting done, predicting...")
+
     predicted_test_labels = svm.predict(test_features)
 
-    print("fitting and predicting done, evaluating...")
+    print("predicting done, evaluating...")
 
     ### evaluator ###
     evaluate(true_test_labels, predicted_test_labels)
 
     # end of program
     stop = timer()
-    print(f"processing done, took {stop - start:.1f} seconds")
+    print(f"done, took {stop - start:.1f} seconds")
 
 
 if __name__ == "__main__":
