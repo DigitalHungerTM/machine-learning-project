@@ -3,4 +3,3 @@ wheel
 scikit-learn
 numpy
 pandas
-timer
