@@ -71,17 +71,20 @@ class CustomClassifier(abc.ABC):
         
         return ngram_tweet_list
 
-    def get_features(self, text_list: list[list[str]], n=1):
+    def get_features(self, text_list: list[list[str]], n=1, vocab=None):
         """
         :param `text_list`: list of preprocessed, tokenized tweets
         :param `n`: length of gram in N-Hot encoded array, default 1
         :return `features_array`: 2D, N-Hot encoded numpy array of features per tweet
-        :return `vocab`: array of unique ngrams in all of text_list
+        :return `vocab`: array of unique ngrams in all of text_list, default is None,
+            if `vocab` is not set, it will be generated from `text_list`
         """
         assert n >= 1, f'{self.get_features.__qualname__}: n should be 1 or larger'
         
-        # generate vocabulary and convert tweets to ngrams
-        vocab = self.gen_vocab(text_list, n)
+        # generate vocabulary if it is not set
+        if vocab is None: vocab = self.gen_vocab(text_list, n)
+
+        # convert tweets to ngrams
         ngram_tweet_list = self.n_gram_ify(text_list, n)
 
         features_array = np.zeros(shape=(len(ngram_tweet_list), len(vocab))) # make a 2D matrix filled with zeros
