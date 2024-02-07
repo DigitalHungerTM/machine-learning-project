@@ -46,8 +46,7 @@ done, took 512.7 seconds
 
 ## feature extraction method
 
-- Has support for n-grams.
-- If generated (not passed as argument), will return a vocabulary
+- Has support for n-grams
 - vocab generator can be ran on its own
 
 ## preprocessor
