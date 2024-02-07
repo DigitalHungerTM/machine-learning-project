@@ -18,12 +18,12 @@ class CustomClassifier(abc.ABC):
     def __init__(self):
         self.counter = None
 
-    def gen_vocab(self, text_list: list[list[str]], n):
+    def gen_vocab(self, text_list: list[list[str]], n=1):
         """
         generates a vocab for a list of tweets according to the ngram value
         
         :param `text_list`: list of tokenized tweets
-        :param `n`: number of tokens in ngram
+        :param `n`: number of tokens in ngram, default is 1
         :return `vocab`: ngram vocabulary of the tweets list
         """
 
@@ -71,20 +71,14 @@ class CustomClassifier(abc.ABC):
         
         return ngram_tweet_list
 
-    def get_features(self, text_list: list[list[str]], n=1, vocab=None):
+    def get_features(self, text_list: list[list[str]], vocab, n=1):
         """
         :param `text_list`: list of preprocessed, tokenized tweets
         :param `n`: length of gram in N-Hot encoded array, default 1
-        :param `vocab`: vocabulary of n-grams, `n` should be the same as that used by `vocab`,
-            default is None, if not set, `vocab` will be generated from `text_list`
+        :param `vocab`: vocabulary of n-grams, `n` should be the same as that used by `vocab`
         :return `features_array`: 2D, N-Hot encoded numpy array of features per tweet
-        :return `vocab`: array of unique ngrams in all of text_list, only returns if generated
         """
         assert n >= 1, f'{self.get_features.__qualname__}: n should be 1 or larger'
-        VOCAB_GENERATED = False
-        
-        # generate vocabulary if it is not set
-        if vocab is None: vocab = self.gen_vocab(text_list, n); VOCAB_GENERATED = True
 
         # convert tweets to ngrams
         ngram_tweet_list = self.n_gram_ify(text_list, n)
@@ -99,7 +93,7 @@ class CustomClassifier(abc.ABC):
                         features_array[ngram_tweet_index][vocab_index] += 1
 
         # no need to return vocab if it was not generated
-        return features_array, vocab if VOCAB_GENERATED else features_array
+        return features_array
 
 
     def tf_idf(self, text_feats):
