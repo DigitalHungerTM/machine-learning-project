@@ -78,12 +78,13 @@ class CustomClassifier(abc.ABC):
         :param `vocab`: vocabulary of n-grams, `n` should be the same as that used by `vocab`,
             default is None, if not set, `vocab` will be generated from `text_list`
         :return `features_array`: 2D, N-Hot encoded numpy array of features per tweet
-        :return `vocab`: array of unique ngrams in all of text_list
+        :return `vocab`: array of unique ngrams in all of text_list, only returns if generated
         """
         assert n >= 1, f'{self.get_features.__qualname__}: n should be 1 or larger'
+        VOCAB_GENERATED = False
         
         # generate vocabulary if it is not set
-        if vocab is None: vocab = self.gen_vocab(text_list, n)
+        if vocab is None: vocab = self.gen_vocab(text_list, n); VOCAB_GENERATED = True
 
         # convert tweets to ngrams
         ngram_tweet_list = self.n_gram_ify(text_list, n)
@@ -97,7 +98,8 @@ class CustomClassifier(abc.ABC):
                     if tweet_ngram == vocab_ngram:
                         features_array[ngram_tweet_index][vocab_index] += 1
 
-        return features_array, vocab
+        # no need to return vocab if it was not generated
+        return features_array, vocab if VOCAB_GENERATED else features_array
 
 
     def tf_idf(self, text_feats):
