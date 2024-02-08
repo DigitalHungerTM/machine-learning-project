@@ -14,7 +14,7 @@ from sklearn.utils import shuffle
 ##################################################################
 
 def read_dataset(folder, split):
-    print('***** Reading the dataset *****')
+    print('\n***** Reading the dataset *****\n')
 
     inputf = open(os.path.join(folder, f'{split}.tsv'), encoding='utf-8')
     inputdf = pd.read_csv(inputf, sep="\t", encoding='utf-8', header=0)
@@ -39,6 +39,9 @@ def preprocess_dataset(text_list: list[str]):
     - punctuation
     and then tokenizes
     """
+
+    print('***** Preprocessing *****\n')
+
     preprocessed_text_list = []
     for tweet in text_list:
         tweet = " ".join([word for word in tweet.split()
@@ -73,6 +76,8 @@ def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     f1: 0.583
     """
     
+    print('***** Evaluating *****\n')
+
     confusion_matrix = metrics.confusion_matrix(y_true=true_labels, y_pred=predicted_labels)
 
     # accuracy
@@ -90,7 +95,6 @@ def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     f1 = np.nan_to_num(2 * (precision * recall) / (precision + recall))
     macro_f1 = np.mean(f1)
 
-    print('***** Evaluation *****')
     # do some nice string formatting
     print(
         f"""
@@ -107,14 +111,20 @@ def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     )
 
 
-def train_test(classifier='svm'):
+def train_test(classifier='svm', n=1):
+    """
+    loads data, preprocesses, fits on train data and predicts labels for test data,
+    then evaluates
+    :param `classifier`: type of classifier you want to use
+    :param `n`: number of tokens that the n-grams should contain, default is 1
+    """
     # Read train and test data and generate tweet list together with label list
-    train_data, train_labels = read_dataset('CT22_dutch_1B_claim', 'train')
-    test_data, test_labels = read_dataset('CT22_dutch_1B_claim', 'test')
+    train_data, train_labels = read_dataset('data', 'CT22_dutch_1B_claim_train')
+    test_data, test_labels = read_dataset('data', 'CT22_dutch_1B_claim_dev_test')
 
     # Preprocess train and test data
-    #train_data = preprocess_dataset(train_data)
-    #test_data = preprocess_dataset(test_data)
+    train_data = preprocess_dataset(train_data)
+    test_data = preprocess_dataset(test_data)
 
 
     # Create a your custom classifier
@@ -127,7 +137,10 @@ def train_test(classifier='svm'):
 
     # Generate features from train and test data
     # features: word count features per sentences as a 2D numpy array
+    print("training data")
     train_feats = cls.get_features(train_data)
+    print("vocab length: ", len(train_feats[0]))
+    print("testing data")
     test_feats = cls.get_features(test_data)
 
     
@@ -165,10 +178,10 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 
 def main():
-    # train_test('svm')
-    texts, _ = read_dataset("data", "train_cut")
-    for text in preprocess_dataset(texts):
-        print(text)
+    train_test('svm')
+    # texts, _ = read_dataset("data", "train_cut")
+    # for text in preprocess_dataset(texts):
+    #     print(" ".join(text))
 
 
 if __name__ == "__main__":

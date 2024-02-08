@@ -1,9 +1,8 @@
 import abc
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 import numpy as np
-import numpy.typing as npt
-from collections import Counter
-import pandas as pd
+import pickle
+import os.path as path
 
 """
 Implement a classifier with required functions:
@@ -71,14 +70,32 @@ class CustomClassifier(abc.ABC):
         
         return ngram_tweet_list
 
-    def get_features(self, text_list: list[list[str]], vocab, n=1):
+    def get_features(self, text_list: list[list[str]], n=1):
         """
         :param `text_list`: list of preprocessed, tokenized tweets
         :param `n`: length of gram in N-Hot encoded array, default 1
-        :param `vocab`: vocabulary of n-grams, `n` should be the same as that used by `vocab`
         :return `features_array`: 2D, N-Hot encoded numpy array of features per tweet
         """
         assert n >= 1, f'{self.get_features.__qualname__}: n should be 1 or larger'
+        VOCAB_GENERATED = False
+        print("getting features")
+
+        # load vocab from pickle if it exists
+        if path.exists("data/vocab.pickle") and path.isfile("data/vocab.pickle"):
+            print("vocab pickle found, loading vocab pickle")
+            with open("data/vocab.pickle", "rb") as pickle_file:
+                vocab = pickle.load(pickle_file)
+
+            # check if vocab has the same value as given n for ngrams
+            if len(vocab[0]) != n:
+                print("changed n, regenerating vocab")
+                vocab = self.gen_vocab(text_list, n)
+                VOCAB_GENERATED = True
+
+        else:
+            print("vocab pickle not found, generating vocab")
+            vocab = self.gen_vocab(text_list, n)
+            VOCAB_GENERATED = True
 
         # convert tweets to ngrams
         ngram_tweet_list = self.n_gram_ify(text_list, n)
@@ -92,7 +109,10 @@ class CustomClassifier(abc.ABC):
                     if tweet_ngram == vocab_ngram:
                         features_array[ngram_tweet_index][vocab_index] += 1
 
-        # no need to return vocab if it was not generated
+        # save new pickle dump if a vocab was generated
+        if VOCAB_GENERATED:
+            with open("data/vocab.pickle", "wb") as pickle_write_file:
+                pickle.dump(vocab, pickle_write_file)
         return features_array
 
 

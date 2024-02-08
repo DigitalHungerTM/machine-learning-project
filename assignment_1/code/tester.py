@@ -32,9 +32,9 @@ def main():
     
     # N-hot encoding
     # train
-    train_features = cc.get_features(p_train_texts, vocab=vocab, n=N)
+    train_features = cc.get_features(p_train_texts, n=N)
     # test
-    test_features = cc.get_features(p_test_texts, vocab=vocab, n=N)
+    test_features = cc.get_features(p_test_texts, n=N)
 
     # print nicely
     print(
