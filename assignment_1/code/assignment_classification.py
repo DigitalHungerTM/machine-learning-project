@@ -138,10 +138,10 @@ def train_test(classifier='svm', n=1):
     # Generate features from train and test data
     # features: word count features per sentences as a 2D numpy array
     print("training data")
-    train_feats = cls.get_features(train_data)
+    train_feats = cls.get_features(train_data, n)
     print("vocab length: ", len(train_feats[0]))
     print("testing data")
-    test_feats = cls.get_features(test_data)
+    test_feats = cls.get_features(test_data, n)
 
     
     # Train classifier
@@ -178,7 +178,7 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 
 def main():
-    train_test('svm')
+    train_test('svm', n=3)
     # texts, _ = read_dataset("data", "train_cut")
     # for text in preprocess_dataset(texts):
     #     print(" ".join(text))
