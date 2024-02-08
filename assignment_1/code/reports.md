@@ -118,6 +118,41 @@ vocab pickle found, loading vocab pickle
             f1:        0.405
 ```
 
+I also noticed that I now had support for character based encoding instead of word based, so I added a unicode decoder that would convert every non unicode character (ë, à) to its unicode counterpart (e, a). Character based log with n=1:
+
+```text
+***** Reading the dataset *****
+
+Number of samples: 534
+training data
+
+***** Preprocessing *****
+
+***** Preprocessing *****
+
+training data
+***** Getting features *****
+
+vocab pickle not found, generating vocab
+vocab length:  39
+testing data
+***** Getting features *****
+
+vocab pickle found, loading vocab pickle
+***** Evaluating *****
+
+
+            accuracy:  0.706
+            precision: [0.696 0.721]
+            recall:    [0.787 0.615]
+            f1:        [0.739 0.664]
+
+            macro avg:
+            precision: 0.708
+            recall:    0.701
+            f1:        0.701
+```
+
 ## feature extraction method
 
 - Has support for n-grams

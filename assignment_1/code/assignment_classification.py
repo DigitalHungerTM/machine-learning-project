@@ -7,6 +7,7 @@ from custom_knn_classifier import CustomKNN
 from custom_naive_bayes import CustomNaiveBayes
 from sklearn_svm_classifier import SVMClassifier
 from sklearn.utils import shuffle
+from unidecode import unidecode
 
 
 ##################################################################
@@ -50,7 +51,8 @@ def preprocess_dataset(text_list: list[str]):
                             and not word.startswith("http") # remove links
                         ]).lower() # de-capitalize
         tweet = re.sub(r'[^\w\s]', '', tweet) # remove anything that is not a word or whitespace (punctuation and emojis)
-        tweet = tweet.split() # tokenize
+        tweet = unidecode(tweet) # replace accented letters (e.g., ë and à) with their unicode counterparts (e and a)
+        # tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
         preprocessed_text_list.append(tweet)
 
     return preprocessed_text_list
