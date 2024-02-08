@@ -16,42 +16,17 @@ predict(test_features): to predict test labels
 class CustomClassifier(abc.ABC):
     def __init__(self):
         self.counter = None
-
-    def gen_vocab(self, text_list: list[list[str]], n=1):
-        """
-        generates a vocab for a list of tweets according to the ngram value
-        
-        :param `text_list`: list of tokenized tweets
-        :param `n`: number of tokens in ngram, default is 1
-        :return `vocab`: ngram vocabulary of the tweets list
-        """
-
-        # generate vocabulary and convert tweets to ngrams
-        vocab = set()
-
-        for tweet in text_list:
-            length = len(tweet)
-            i = 0
-            
-            while i < length - n: # make sure we don't run out of space
-
-                ngram = tuple(tweet[i:i+n])
-                vocab.add(ngram) # tuples are ordered and unmutable
-                
-                i += 1
-            
-        return tuple(vocab) # tuples are ordered and unmutable
     
     def n_gram_ify(self, text_list: list[list[str]], n):
         """
         'ngram-ifies' the tweets in the `text_list`
         
-        :param `text_list`: list of tweets
+        :param `text_list`: list of tokenized tweets (remove tokenizing for character based ngram-ifying)
         :param `n`: number of tokens in ngram
         :return `ngram_tweet_list`: list of ngram-ified tweets
         """
 
-        # generate vocabulary and convert tweets to ngrams
+        # convert tweets to ngrams
         ngram_tweet_list = []
 
         for tweet in text_list:
@@ -69,6 +44,20 @@ class CustomClassifier(abc.ABC):
             ngram_tweet_list.append(ngram_tweet)
         
         return ngram_tweet_list
+    
+    
+    def gen_vocab(self, ngram_tweet_list):
+        """
+        generate a vocab based on 'ngram-ified' tweets
+        :param `ngram_tweet_list`: list of `ngram-ified` tweets
+        :return `vocab`: tuple of ngrams
+        """
+        vocab = set()
+        for ngram_tweet in ngram_tweet_list:
+            for ngram in ngram_tweet:
+             vocab.add(ngram)
+        return tuple(vocab) # tuples are ordered and unmutable
+    
 
     def get_features(self, text_list: list[list[str]], n=1):
         """
@@ -78,7 +67,10 @@ class CustomClassifier(abc.ABC):
         """
         assert n >= 1, f'{self.get_features.__qualname__}: n should be 1 or larger'
         VOCAB_GENERATED = False
-        print("getting features")
+        print("***** Getting features *****\n")
+        
+        # convert tweets to ngrams
+        ngram_tweet_list = self.n_gram_ify(text_list, n)
 
         # load vocab from pickle if it exists
         if path.exists("data/vocab.pickle") and path.isfile("data/vocab.pickle"):
@@ -89,16 +81,13 @@ class CustomClassifier(abc.ABC):
             # check if vocab has the same value as given n for ngrams
             if len(vocab[0]) != n:
                 print("changed n, regenerating vocab")
-                vocab = self.gen_vocab(text_list, n)
+                vocab = self.gen_vocab(ngram_tweet_list)
                 VOCAB_GENERATED = True
 
         else:
             print("vocab pickle not found, generating vocab")
-            vocab = self.gen_vocab(text_list, n)
+            vocab = self.gen_vocab(ngram_tweet_list)
             VOCAB_GENERATED = True
-
-        # convert tweets to ngrams
-        ngram_tweet_list = self.n_gram_ify(text_list, n)
 
         features_array = np.zeros(shape=(len(ngram_tweet_list), len(vocab))) # make a 2D matrix filled with zeros
 

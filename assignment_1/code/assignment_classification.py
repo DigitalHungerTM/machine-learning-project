@@ -123,6 +123,7 @@ def train_test(classifier='svm', n=1):
     test_data, test_labels = read_dataset('data', 'CT22_dutch_1B_claim_dev_test')
 
     # Preprocess train and test data
+    print("training data\n")
     train_data = preprocess_dataset(train_data)
     test_data = preprocess_dataset(test_data)
 
@@ -178,7 +179,7 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 
 def main():
-    train_test('svm', n=3)
+    train_test('svm', n=1)
     # texts, _ = read_dataset("data", "train_cut")
     # for text in preprocess_dataset(texts):
     #     print(" ".join(text))
