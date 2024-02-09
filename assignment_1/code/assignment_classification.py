@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import numpy as np
 import pandas as pd
 from sklearn import metrics
@@ -30,7 +31,7 @@ def read_dataset(folder: str, split: str):
     labels = inputdf.class_label.to_list()
 
     assert len(texts) == len(labels), 'Text and label files should have same number of lines..'
-    print(f'Number of samples: {len(texts)}')
+    # print(f'Number of samples: {len(texts)}')
 
     return texts, labels
 
@@ -102,25 +103,26 @@ def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     # do some nice string formatting
     print(
         f"""
-            accuracy:  {np.round(accuracy, 3)}
-            precision: {np.round(list(precision), 3)}
-            recall:    {np.round(list(recall), 3)}
-            f1:        {np.round(list(f1), 3)}
+accuracy:  {np.round(accuracy, 3)}
+precision: {np.round(list(precision), 3)}
+recall:    {np.round(list(recall), 3)}
+f1:        {np.round(list(f1), 3)}
 
-            macro avg:
-            precision: {np.round(macro_precision, 3)}
-            recall:    {np.round(macro_recall, 3)}
-            f1:        {np.round(macro_f1, 3)}
+macro avg:
+precision: {np.round(macro_precision, 3)}
+recall:    {np.round(macro_recall, 3)}
+f1:        {np.round(macro_f1, 3)}
         """
     )
 
 
-def train_test(classifier='svm', n=1):
+def train_test(classifier='svm', n=1, k=5):
     """
     loads data, preprocesses, fits on train data and predicts labels for test data,
     then evaluates
     :param `classifier`: type of classifier you want to use
     :param `n`: number of tokens that the n-grams should contain, default is 1
+    :param `k`: number of nearest neighbours for the knn classifier, default is 5
     """
     # Read train and test data and generate tweet list together with label list
     train_data, train_labels = read_dataset('data', 'CT22_dutch_1B_claim_train')
@@ -179,10 +181,14 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 
 def main():
-    train_test('knn', n=1)
-    # texts, _ = read_dataset("data", "train_cut")
-    # for text in preprocess_dataset(texts):
-    #     print(" ".join(text))
+    # train_test('knn', n=1)
+    
+    # why am I doing this
+    for n in range(1,6): # on top to not constantly regenerate the vocab
+        for k in range(1,11):
+            print(f"type='knn', {n=}, {k=}", file=sys.stderr)
+            print(f"type='knn', {n=}, {k=}")
+            train_test('knn', n, k)
 
 
 if __name__ == "__main__":

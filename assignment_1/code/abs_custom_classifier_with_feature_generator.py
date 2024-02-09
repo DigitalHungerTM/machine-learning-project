@@ -67,25 +67,24 @@ class CustomClassifier(abc.ABC):
         """
         assert n >= 1, f'{self.get_features.__qualname__}: n should be 1 or larger'
         VOCAB_GENERATED = False
-        print("***** Getting features *****\n")
         
         # convert tweets to ngrams
         ngram_tweet_list = self.n_gram_ify(text_list, n)
 
         # load vocab from pickle if it exists
         if path.exists("data/vocab.pickle") and path.isfile("data/vocab.pickle"):
-            print("vocab pickle found, loading vocab pickle")
+            # print("vocab pickle found, loading vocab pickle")
             with open("data/vocab.pickle", "rb") as pickle_file:
                 vocab = pickle.load(pickle_file)
 
             # check if vocab has the same value as given n for ngrams
             if len(vocab[0]) != n:
-                print("changed n, regenerating vocab")
+                # print("changed n, regenerating vocab")
                 vocab = self.gen_vocab(ngram_tweet_list)
                 VOCAB_GENERATED = True
 
         else:
-            print("vocab pickle not found, generating vocab")
+            # print("vocab pickle not found, generating vocab")
             vocab = self.gen_vocab(ngram_tweet_list)
             VOCAB_GENERATED = True
 
