@@ -1,4 +1,5 @@
 import abc
+import sys
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 import numpy as np
 import pickle
@@ -59,7 +60,7 @@ class CustomClassifier(abc.ABC):
         return tuple(vocab) # tuples are ordered and unmutable
     
 
-    def get_features(self, text_list, n=1):
+    def get_features(self, text_list, n=1, tfidf=False):
         """
         :param `text_list`: list of preprocessed tweets, either tokenized or not
         :param `n`: length of gram in N-Hot encoded array, default 1
@@ -73,18 +74,18 @@ class CustomClassifier(abc.ABC):
 
         # load vocab from pickle if it exists
         if path.exists("data/vocab.pickle") and path.isfile("data/vocab.pickle"):
-            # print("vocab pickle found, loading vocab pickle")
+            print("vocab pickle found, loading vocab pickle", file=sys.stderr)
             with open("data/vocab.pickle", "rb") as pickle_file:
                 vocab = pickle.load(pickle_file)
 
             # check if vocab has the same value as given n for ngrams
             if len(vocab[0]) != n:
-                # print("changed n, regenerating vocab")
+                print("changed n, regenerating vocab", file=sys.stderr)
                 vocab = self.gen_vocab(ngram_tweet_list)
                 VOCAB_GENERATED = True
 
         else:
-            # print("vocab pickle not found, generating vocab")
+            print("vocab pickle not found, generating vocab", file=sys.stderr)
             vocab = self.gen_vocab(ngram_tweet_list)
             VOCAB_GENERATED = True
 
@@ -99,12 +100,21 @@ class CustomClassifier(abc.ABC):
 
         # save new pickle dump if a vocab was generated
         if VOCAB_GENERATED:
+            print("saving new vocab pickle to pickle file", file=sys.stderr)
             with open("data/vocab.pickle", "wb") as pickle_write_file:
                 pickle.dump(vocab, pickle_write_file)
+
+        if tfidf:
+            return self.tf_idf(features_array)
         return features_array
 
-
     def tf_idf(self, text_feats):
+        """
+        transforms a sparse matrix of (n_samples, n_features) into a tf-idf normalized
+        sparse matrix of (n_samples, n_features)
+        :param `text_feats`: matrix of N-hot encoded samples
+        :return: tf-idf normalized matrix of N-hot encoded samples
+        """
         tfidf_transformer = TfidfTransformer().fit(text_feats)
         return tfidf_transformer.transform(text_feats)
 
