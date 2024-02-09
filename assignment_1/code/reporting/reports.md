@@ -2,6 +2,15 @@
 
 Mathijs Afman - s4765079
 
+## TODO
+
+- make sure printing to stderr works properly
+- write a grapher
+- fix knn classifier / test with character encoding
+- test tf-idf transformer
+- naive bayes? dunno if I want to do that though
+- do a whole fuck ton of testing
+
 ## log
 
 Everything went pretty smoothly up until the first test run of the provided SVM
@@ -49,6 +58,14 @@ done, took 512.7 seconds
 While working on my laptop (pop-os!, python3.10) I added pickling support for the vocab. I don't know if this is the reason but my laptop seems to be way faster for the fitter, even when generating 2-grams and 3-grams (which gicantically increases the vocab size, 6.500 > 30.000) it is done in a few seconds instead of literal minutes. Log with n=1 on my laptop:
 
 The thing started breaking down with n=4 for the n-grams. An invalid divide started popping up. The system should be robust against this but I don't know until I can view the output. This error might be due to tweets that have less than 4 words. Deleting tweets that are too short could be the solution, but this does result in dataloss and possible accuracy loss.
+Even though the classifier kept running and training, the results it produced were not usable beyond n=3.
+
+I looked at the data itself and discovered there was no variation between values of k in the evaluation, so I'm guessing there is something wrong with my KNN classifier
+
+For the final report, I want to graph the results of both a token based classifier and character based classifier:
+
+- bar graph (or line graph, depending on wether I want to show multiple lines for n in one graph)
+- k on the horizontal axis
 
 ```text
 ***** Reading the dataset *****

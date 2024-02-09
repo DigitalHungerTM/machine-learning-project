@@ -89,6 +89,8 @@ class CustomClassifier(abc.ABC):
             vocab = self.gen_vocab(ngram_tweet_list)
             VOCAB_GENERATED = True
 
+        print("number of features:", len(vocab), file=sys.stderr)
+
         features_array = np.zeros(shape=(len(ngram_tweet_list), len(vocab))) # make a 2D matrix filled with zeros
 
         # loop over vocab and tweets in order of `features_array` dimensions

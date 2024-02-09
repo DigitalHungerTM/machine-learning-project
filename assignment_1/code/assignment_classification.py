@@ -57,7 +57,7 @@ def preprocess_dataset(text_list: list[str]):
                         ]).lower() # de-capitalize
         tweet = re.sub(r'[^\w\s]', '', tweet) # remove anything that is not a word or whitespace (punctuation and emojis)
         tweet = unidecode(tweet) # replace accented letters (e.g., ë and à) with their unicode counterparts (e and a)
-        tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
+        # tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
         preprocessed_text_list.append(tweet)
 
     return preprocessed_text_list
@@ -70,17 +70,10 @@ def preprocess_dataset(text_list: list[str]):
 def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     """
     Print accuracy, precision, recall and f1 metrics for each classes and macro average.
-    >>> evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0])
-    (above example will run if no arguments are passed)
-    accuracy: 0.6
-    precision: [1. , 1. , 0.5, 0. ]
-    recall: [0.5, 1. , 1. , 0. ]
-    f1: [0.66666667, 1. , 0.66666667, 0.]
 
-    macro avg:
-    precision: 0.625
-    recall: 0.625
-    f1: 0.583
+    :param `true_labels`: true labels from the test set
+    :param `predicted_labels`: predicted labels from the test set
+    :return `csv_string`: csv formatted string of accuracy and macro f1 score
     """
     
     confusion_matrix = metrics.confusion_matrix(y_true=true_labels, y_pred=predicted_labels)
@@ -99,7 +92,7 @@ def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     # f1 score
     f1 = np.nan_to_num(2 * (precision * recall) / (precision + recall))
     macro_f1 = np.mean(f1)
-
+    
     # do some nice string formatting
     print(
         f"""
@@ -112,23 +105,26 @@ macro avg:
 precision: {np.round(macro_precision, 3)}
 recall:    {np.round(macro_recall, 3)}
 f1:        {np.round(macro_f1, 3)}
-        """
+        """, file=sys.stderr
     )
+
+    csv_string = f"{accuracy},{macro_f1}"
+    return csv_string
 
 
 def train_test(classifier='svm', n=1, k=5):
     """
     loads data, preprocesses, fits on train data and predicts labels for test data,
     then evaluates
-    :param `classifier`: type of classifier you want to use
+    :param `classifier`: type of classifier you want to use, default is svm
     :param `n`: number of tokens that the n-grams should contain, default is 1
     :param `k`: number of nearest neighbours for the knn classifier, default is 5
     """
-    # Read train and test data and generate tweet list together with label list
+    print("reading data", file=sys.stderr)
     train_data, train_labels = read_dataset('data', 'CT22_dutch_1B_claim_train')
     test_data, test_labels = read_dataset('data', 'CT22_dutch_1B_claim_dev_test')
 
-    # Preprocess train and test data
+    print("processing data", file=sys.stderr)
     train_data = preprocess_dataset(train_data)
     test_data = preprocess_dataset(test_data)
 
@@ -136,25 +132,24 @@ def train_test(classifier='svm', n=1, k=5):
     # Create a your custom classifier
     if classifier == 'svm':
         cls = SVMClassifier(kernel='linear')
-#    elif classifier == 'naive_bayes':
-#        cls = CustomNaiveBayes()
+    elif classifier == 'naive_bayes':
+        cls = CustomNaiveBayes()
     elif classifier == 'knn':
         cls = CustomKNN(k=5, distance_metric='cosine')
 
-    # Generate features from train and test data
-    # features: word count features per sentences as a 2D numpy array
+    print("getting features", file=sys.stderr)
     train_feats = cls.get_features(train_data, n)
     test_feats = cls.get_features(test_data, n)
 
     
-    # Train classifier
+    print("training classifier", file=sys.stderr)
     cls.fit(train_feats, train_labels)
 
-    # Predict labels for test data by using trained classifier and features of the test data
+    print("predicting labels", file=sys.stderr)
     predicted_test_labels = cls.predict(test_feats)
 
-    # Evaluate the classifier by comparing predicted test labels and true test labels
-    evaluate(test_labels, predicted_test_labels)
+    print("evaluating")
+    print(f"{n},{k},{evaluate(test_labels, predicted_test_labels)}")
 
 
 def cross_validate(n_fold=10, classifier='svm'):
@@ -181,14 +176,13 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 
 def main():
-    # train_test('knn', n=1)
-    
-    # why am I doing this
-    for n in range(1,6): # on top to not constantly regenerate the vocab
-        for k in range(1,11):
-            print(f"type='knn', {n=}, {k=}", file=sys.stderr)
-            print(f"type='knn', {n=}, {k=}")
-            train_test('knn', n, k)
+    # training knn doesn't give expected results, everything keeps being the same for different values of k
+    # maybe this works better based on characters
+    # TODO: investigate
+    n=2
+    for k in range(1,6):
+        print(f"type='knn', {n=}, {k=}", file=sys.stderr)
+        train_test('knn', n, k)
 
 
 if __name__ == "__main__":
