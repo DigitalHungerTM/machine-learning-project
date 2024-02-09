@@ -14,9 +14,15 @@ from unidecode import unidecode
 ####################### DATASET FUNCTIONS ########################
 ##################################################################
 
-def read_dataset(folder, split):
-    print('\n***** Reading the dataset *****\n')
-
+def read_dataset(folder: str, split: str):
+    """
+    reads tsv file and gives tweets and their labels
+    
+    :param `folder`: relative folder path
+    :param `split`: filename without extension
+    :return `texts`: list of tweets
+    :return `labels`: corresponding labels
+    """
     inputf = open(os.path.join(folder, f'{split}.tsv'), encoding='utf-8')
     inputdf = pd.read_csv(inputf, sep="\t", encoding='utf-8', header=0)
 
@@ -41,8 +47,6 @@ def preprocess_dataset(text_list: list[str]):
     and then tokenizes
     """
 
-    print('***** Preprocessing *****\n')
-
     preprocessed_text_list = []
     for tweet in text_list:
         tweet = " ".join([word for word in tweet.split()
@@ -52,7 +56,7 @@ def preprocess_dataset(text_list: list[str]):
                         ]).lower() # de-capitalize
         tweet = re.sub(r'[^\w\s]', '', tweet) # remove anything that is not a word or whitespace (punctuation and emojis)
         tweet = unidecode(tweet) # replace accented letters (e.g., ë and à) with their unicode counterparts (e and a)
-        # tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
+        tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
         preprocessed_text_list.append(tweet)
 
     return preprocessed_text_list
@@ -78,8 +82,6 @@ def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     f1: 0.583
     """
     
-    print('***** Evaluating *****\n')
-
     confusion_matrix = metrics.confusion_matrix(y_true=true_labels, y_pred=predicted_labels)
 
     # accuracy
@@ -125,7 +127,6 @@ def train_test(classifier='svm', n=1):
     test_data, test_labels = read_dataset('data', 'CT22_dutch_1B_claim_dev_test')
 
     # Preprocess train and test data
-    print("training data\n")
     train_data = preprocess_dataset(train_data)
     test_data = preprocess_dataset(test_data)
 
@@ -135,15 +136,12 @@ def train_test(classifier='svm', n=1):
         cls = SVMClassifier(kernel='linear')
 #    elif classifier == 'naive_bayes':
 #        cls = CustomNaiveBayes()
-#    elif classifier == 'knn':
-#        cls = CustomKNN(k=5, distance_metric='cosine')
+    elif classifier == 'knn':
+        cls = CustomKNN(k=5, distance_metric='cosine')
 
     # Generate features from train and test data
     # features: word count features per sentences as a 2D numpy array
-    print("training data")
     train_feats = cls.get_features(train_data, n)
-    print("vocab length: ", len(train_feats[0]))
-    print("testing data")
     test_feats = cls.get_features(test_data, n)
 
     
@@ -181,7 +179,7 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 
 def main():
-    train_test('svm', n=1)
+    train_test('knn', n=1)
     # texts, _ = read_dataset("data", "train_cut")
     # for text in preprocess_dataset(texts):
     #     print(" ".join(text))

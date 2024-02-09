@@ -59,9 +59,9 @@ class CustomClassifier(abc.ABC):
         return tuple(vocab) # tuples are ordered and unmutable
     
 
-    def get_features(self, text_list: list[list[str]], n=1):
+    def get_features(self, text_list, n=1):
         """
-        :param `text_list`: list of preprocessed, tokenized tweets
+        :param `text_list`: list of preprocessed tweets, either tokenized or not
         :param `n`: length of gram in N-Hot encoded array, default 1
         :return `features_array`: 2D, N-Hot encoded numpy array of features per tweet
         """

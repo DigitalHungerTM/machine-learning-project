@@ -1,6 +1,7 @@
 import numpy as np
 import scipy
 from abs_custom_classifier_with_feature_generator import CustomClassifier
+from statistics import mode
 
 """
 Implement a KNN classifier with required functions:
@@ -31,20 +32,31 @@ class CustomKNN(CustomClassifier):
         return self
 
     def predict(self, test_feats):
-        """ Predict classes with provided test features """
+        """
+        Predict labels of `test_feats`
+        
+        :param `test_feats`: features of test set
+        :param `method`: method with which to calculate distances, defaults to 'cosine'
+        :return `predictions`: list of predicted labels
+        """
 
         assert self.is_trained, 'Model must be trained before predicting'
 
-        predictions = []
-
         # 2D array of distances between all test and all training samples
         # Shape (Test X Train)
-        distance_values = scipy.spatial.distance.cdist()
-
-        # Use provided function by replacing X and Y, to calculate distance between test feature(s) and train feature(s)
-        # You can use the function either by giving two matrices (All test features, All train features)
-        # or by passing a matrix and a vector: (A test feature, All train features)
-        distance_values = scipy.spatial.distance.cdist()
+        distance_values = scipy.spatial.distance.cdist(test_feats, self.train_feats)
 
         predictions = []
+        for distances_list in distance_values:
+            # get indexes for k nearest neighbours
+            # from https://stackoverflow.com/questions/6910641/how-do-i-get-indices-of-n-maximum-values-in-a-numpy-array
+            k_nearest_neighbours_indexes = np.argpartition(distances_list, -self.k)[-self.k:]
+            
+            # map indexes to labels from the train set
+            k_nearest_neighbours_labels = map(lambda x: self.train_labels[x], k_nearest_neighbours_indexes)
+            
+            # take the most common label
+            most_common_label = mode(k_nearest_neighbours_labels)
+            predictions.append(most_common_label)
+
         return predictions
