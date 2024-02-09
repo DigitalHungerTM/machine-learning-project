@@ -48,6 +48,8 @@ done, took 512.7 seconds
 
 While working on my laptop (pop-os!, python3.10) I added pickling support for the vocab. I don't know if this is the reason but my laptop seems to be way faster for the fitter, even when generating 2-grams and 3-grams (which gicantically increases the vocab size, 6.500 > 30.000) it is done in a few seconds instead of literal minutes. Log with n=1 on my laptop:
 
+The thing started breaking down with n=4 for the n-grams. An invalid divide started popping up. The system should be robust against this but I don't know until I can view the output. This error might be due to tweets that have less than 4 words. Deleting tweets that are too short could be the solution, but this does result in dataloss and possible accuracy loss.
+
 ```text
 ***** Reading the dataset *****
 
