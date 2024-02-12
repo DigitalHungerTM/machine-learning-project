@@ -17,8 +17,10 @@ predict(test_features): to predict test labels
 class CustomClassifier(abc.ABC):
     def __init__(self):
         self.counter = None
+        self.vocab_generated = False
+        self.train_features_generated = False
     
-    def n_gram_ify(self, text_list: list[list[str]] | list[str], n: int):
+    def n_gram_ify(self, text_list: list[list[str]] | list[str], n):
         """
         'ngram-ifies' the tweets in the `text_list`
         
@@ -27,10 +29,6 @@ class CustomClassifier(abc.ABC):
         :return `ngram_tweet_list`: list of ngram-ified tweets
         """
 
-        # TODO:
-            # make sure that sentences that are too short for `n` are made longer
-            # by adding n-1 meaningless tokens to the start and end
-        
         padding = '.'*(n-1)
 
         # convert tweets to ngrams
@@ -59,17 +57,35 @@ class CustomClassifier(abc.ABC):
         return ngram_tweet_list
     
     
-    def gen_vocab(self, ngram_tweet_list):
+    def get_vocab(self, ngram_tweet_list, n):
         """
-        generate a vocab based on 'ngram-ified' tweets
+        tries to find a pickle that has the same value for n as the tweet's ngrams.
+        if not found, generates a new vocab and saves it as a pickle
         :param `ngram_tweet_list`: list of `ngram-ified` tweets
         :return `vocab`: tuple of ngrams
         """
+
+        if path.exists("data/vocab.pickle") and path.isfile("data/vocab.pickle"):
+            print("vocab pickle found, loading vocab pickle")
+            with open("data/vocab.pickle", "rb") as pickle_file:
+                vocab = pickle.load(pickle_file)
+
+            # check if vocab has the same value as given n for ngrams
+            if len(vocab[0]) == n:
+                return vocab # early escape
+
+        print("vocab pickle not found, or n changed. generating vocab")
         vocab = set()
         for ngram_tweet in ngram_tweet_list:
             for ngram in ngram_tweet:
              vocab.add(ngram)
-        return tuple(vocab) # tuples are ordered and unmutable
+        vocab = tuple(vocab) # tuples are ordered and unmutable
+
+        with open("data/vocab.pickle", "wb") as pickle_out_file:
+            pickle.dump(vocab, pickle_out_file)
+        
+        self.vocab_generated = True
+        return vocab
     
 
     def get_features(self, text_list, n=1, tfidf=False):
@@ -79,27 +95,12 @@ class CustomClassifier(abc.ABC):
         :return `features_array`: 2D, N-Hot encoded numpy array of features per tweet
         """
         assert n >= 1, f'{self.get_features.__qualname__}: n should be 1 or larger'
-        VOCAB_GENERATED = False
         
         # convert tweets to ngrams
         ngram_tweet_list = self.n_gram_ify(text_list, n)
 
-        # load vocab from pickle if it exists
-        if path.exists("data/vocab.pickle") and path.isfile("data/vocab.pickle"):
-            print("vocab pickle found, loading vocab pickle")
-            with open("data/vocab.pickle", "rb") as pickle_file:
-                vocab = pickle.load(pickle_file)
-
-            # check if vocab has the same value as given n for ngrams
-            if len(vocab[0]) != n:
-                print("changed n, regenerating vocab")
-                vocab = self.gen_vocab(ngram_tweet_list)
-                VOCAB_GENERATED = True
-
-        else:
-            print("vocab pickle not found, generating vocab")
-            vocab = self.gen_vocab(ngram_tweet_list)
-            VOCAB_GENERATED = True
+        # get the vocab
+        vocab = self.get_vocab(ngram_tweet_list, n)
 
         print("number of features:", len(vocab))
 
@@ -112,12 +113,6 @@ class CustomClassifier(abc.ABC):
                 for tweet_ngram in ngram_tweet:
                     if tweet_ngram == vocab_ngram:
                         features_array[ngram_tweet_index][vocab_index] += 1
-
-        # save new pickle dump if a vocab was generated
-        if VOCAB_GENERATED:
-            print("saving new vocab pickle to pickle file")
-            with open("data/vocab.pickle", "wb") as pickle_write_file:
-                pickle.dump(vocab, pickle_write_file)
 
         if tfidf:
             return self.tf_idf(features_array)
