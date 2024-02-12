@@ -46,8 +46,10 @@ class CustomKNN(CustomClassifier):
         # 2D array of distances between all test and all training samples
         # Shape (Test X Train)
         distance_values = cdist(test_feats, self.train_feats, metric=self.distance_metric)
+        print(np.shape(distance_values))
 
         predictions = []
+        
         for distances_list in distance_values:
             # get indexes for k nearest neighbours
             # from https://stackoverflow.com/questions/6910641/how-do-i-get-indices-of-n-maximum-values-in-a-numpy-array
@@ -55,10 +57,12 @@ class CustomKNN(CustomClassifier):
             
             # my own version
             sorted_nearest_distances = sorted(list(enumerate(distances_list)), key=lambda x: x[-1])[-self.k:]
-            k_nearest_neighbours_indexes = list(map(lambda x: x[0], sorted_nearest_distances))
+            # k_nearest_neighbours_indexes = list(map(lambda x: x[0], sorted_nearest_distances))
+            k_nearest_neighbours_indexes = [i for i, value in sorted_nearest_distances]
             
             # map indexes to labels from the train set
-            k_nearest_neighbours_labels = list(map(lambda x: self.train_labels[x], k_nearest_neighbours_indexes))
+            # k_nearest_neighbours_labels = list(map(lambda x: self.train_labels[x], k_nearest_neighbours_indexes))
+            k_nearest_neighbours_labels = [self.train_labels[i] for i in k_nearest_neighbours_indexes]
             
             # take the most common label
             most_common_label = mode(k_nearest_neighbours_labels)

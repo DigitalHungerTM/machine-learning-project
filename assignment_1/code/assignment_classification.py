@@ -77,16 +77,17 @@ def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     """
     
     confusion_matrix = metrics.confusion_matrix(y_true=true_labels, y_pred=predicted_labels)
+    print("\nconfusion matrix\n", confusion_matrix)
 
     # accuracy
     accuracy = confusion_matrix.diagonal().sum() / confusion_matrix.sum()
 
     # precision
-    precision = confusion_matrix.diagonal() / confusion_matrix.sum(axis = 0)
+    precision = confusion_matrix.diagonal() / confusion_matrix.sum(axis=0)
     macro_precision = np.mean(precision)
 
     # recall
-    recall = confusion_matrix.diagonal() / confusion_matrix.sum(axis = 1)
+    recall = confusion_matrix.diagonal() / confusion_matrix.sum(axis=1)
     macro_recall = np.mean(recall)
 
     # f1 score
@@ -177,10 +178,9 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 def main():
     # settings
-    n=4
-    k=15
-    distance_metric = 'euclidean'
-
+    n=1
+    k=5
+    distance_metric = 'cosine'
 
     print(f"type='knn', {n=}, {k=}", file=sys.stderr)
     train_test('knn', n, k, distance_metric=distance_metric)

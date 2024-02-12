@@ -18,7 +18,7 @@ class CustomClassifier(abc.ABC):
     def __init__(self):
         self.counter = None
     
-    def n_gram_ify(self, text_list: list[list[str]], n):
+    def n_gram_ify(self, text_list: list[list[str]] | list[str], n: int):
         """
         'ngram-ifies' the tweets in the `text_list`
         
@@ -27,14 +27,26 @@ class CustomClassifier(abc.ABC):
         :return `ngram_tweet_list`: list of ngram-ified tweets
         """
 
+        # TODO:
+            # make sure that sentences that are too short for `n` are made longer
+            # by adding n-1 meaningless tokens to the start and end
+        
+        padding = '.'*(n-1)
+
         # convert tweets to ngrams
         ngram_tweet_list = []
 
         for tweet in text_list:
+            # pad tweet with meaningless data
+            if isinstance(tweet, str):
+                tweet = padding + tweet + padding
+            elif isinstance(tweet, list):
+                tweet = list(padding) + tweet + list(padding)
+            
             ngram_tweet = []
             length = len(tweet)
-            i = 0
             
+            i = 0
             while i < length - n: # make sure we don't run out of space
 
                 ngram = tuple(tweet[i:i+n])
