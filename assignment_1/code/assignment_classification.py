@@ -57,7 +57,7 @@ def preprocess_dataset(text_list: list[str]):
                         ]).lower() # de-capitalize
         tweet = re.sub(r'[^\w\s]', '', tweet) # remove anything that is not a word or whitespace (punctuation and emojis)
         tweet = unidecode(tweet) # replace accented letters (e.g., ë and à) with their unicode counterparts (e and a)
-        # tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
+        tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
         preprocessed_text_list.append(tweet)
 
     return preprocessed_text_list
@@ -106,10 +106,10 @@ macro avg:
 precision: {np.round(macro_precision, 3)}
 recall:    {np.round(macro_recall, 3)}
 f1:        {np.round(macro_f1, 3)}
-        """, file=sys.stderr
+        """
     )
 
-    csv_string = f"{accuracy},{macro_f1}"
+    csv_string = f"{accuracy},{precision},{recall},{f1},{macro_precision},{macro_recall},{macro_f1}"
     return csv_string
 
 
@@ -121,11 +121,11 @@ def train_test(classifier='svm', n=1, k=5, distance_metric='cosine'):
     :param `n`: number of tokens that the n-grams should contain, default is 1
     :param `k`: number of nearest neighbours for the knn classifier, default is 5
     """
-    print("reading data", file=sys.stderr)
+    print("reading data")
     train_data, train_labels = read_dataset('data', 'CT22_dutch_1B_claim_train')
     test_data, test_labels = read_dataset('data', 'CT22_dutch_1B_claim_dev_test')
 
-    print("processing data", file=sys.stderr)
+    print("processing data")
     train_data = preprocess_dataset(train_data)
     test_data = preprocess_dataset(test_data)
 
@@ -138,19 +138,23 @@ def train_test(classifier='svm', n=1, k=5, distance_metric='cosine'):
     elif classifier == 'knn':
         cls = CustomKNN(k, distance_metric)
 
-    print("getting features", file=sys.stderr)
+    print("getting features")
     train_feats = cls.get_features(train_data, n)
     test_feats = cls.get_features(test_data, n)
 
     
-    print("training classifier", file=sys.stderr)
+    print("training classifier")
     cls.fit(train_feats, train_labels)
 
-    print("predicting labels", file=sys.stderr)
+    print("predicting labels")
     predicted_test_labels = cls.predict(test_feats)
 
     print("evaluating")
-    print(f"{n},{k},{evaluate(test_labels, predicted_test_labels)}")
+    evaluation_csv_string = evaluate(test_labels, predicted_test_labels)
+
+    print("saving evaluation")
+    with open("reporting/knn_spam.csv", 'w') as outfile:
+        outfile.write(f"{classifier},{distance_metric},{n},{k},{evaluation_csv_string}")
 
 
 def cross_validate(n_fold=10, classifier='svm'):
@@ -178,12 +182,13 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 def main():
     # settings
-    n=1
-    k=5
-    distance_metric = 'cosine'
+    metrics = ['euclidean', 'cosine']
 
-    print(f"type='knn', {n=}, {k=}", file=sys.stderr)
-    train_test('knn', n, k, distance_metric=distance_metric)
+    for n in range(1, 6):
+        for k in range(1, 11):
+            for metric in metrics:
+                print(f"type='knn', {n=}, {k=}, {metric=}")
+                train_test('knn', n, k, distance_metric=metric)
 
 
 if __name__ == "__main__":

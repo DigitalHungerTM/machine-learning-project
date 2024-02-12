@@ -86,27 +86,27 @@ class CustomClassifier(abc.ABC):
 
         # load vocab from pickle if it exists
         if path.exists("data/vocab.pickle") and path.isfile("data/vocab.pickle"):
-            print("vocab pickle found, loading vocab pickle", file=sys.stderr)
+            print("vocab pickle found, loading vocab pickle")
             with open("data/vocab.pickle", "rb") as pickle_file:
                 vocab = pickle.load(pickle_file)
 
             # check if vocab has the same value as given n for ngrams
             if len(vocab[0]) != n:
-                print("changed n, regenerating vocab", file=sys.stderr)
+                print("changed n, regenerating vocab")
                 vocab = self.gen_vocab(ngram_tweet_list)
                 VOCAB_GENERATED = True
 
         else:
-            print("vocab pickle not found, generating vocab", file=sys.stderr)
+            print("vocab pickle not found, generating vocab")
             vocab = self.gen_vocab(ngram_tweet_list)
             VOCAB_GENERATED = True
 
-        print("number of features:", len(vocab), file=sys.stderr)
+        print("number of features:", len(vocab))
 
         features_array = np.zeros(shape=(len(ngram_tweet_list), len(vocab))) # make a 2D matrix filled with zeros
 
         # loop over vocab and tweets in order of `features_array` dimensions
-        print("generating features on vocab", file=sys.stderr)
+        print("generating features on vocab")
         for vocab_index, vocab_ngram in enumerate(vocab):
             for ngram_tweet_index, ngram_tweet in enumerate(ngram_tweet_list):
                 for tweet_ngram in ngram_tweet:
@@ -115,7 +115,7 @@ class CustomClassifier(abc.ABC):
 
         # save new pickle dump if a vocab was generated
         if VOCAB_GENERATED:
-            print("saving new vocab pickle to pickle file", file=sys.stderr)
+            print("saving new vocab pickle to pickle file")
             with open("data/vocab.pickle", "wb") as pickle_write_file:
                 pickle.dump(vocab, pickle_write_file)
 

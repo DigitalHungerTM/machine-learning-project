@@ -45,7 +45,6 @@ class CustomKNN(CustomClassifier):
         # 2D array of distances between all test and all training samples
         # Shape (Test X Train)
         distance_matrix = cdist(test_feats, self.train_feats, metric=self.distance_metric)
-        print(np.shape(distance_matrix))
 
         predictions = []
 
