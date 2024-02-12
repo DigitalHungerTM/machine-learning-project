@@ -112,7 +112,7 @@ f1:        {np.round(macro_f1, 3)}
     return csv_string
 
 
-def train_test(classifier='svm', n=1, k=5, distance_metric='cosine'):
+def train_test(classifier='svm', n=1, k=5, distance_metric='cosine', nb_mode='gaussian', nb_alpha=1.0):
     """
     loads data, preprocesses, fits on train data and predicts labels for test data,
     then evaluates
@@ -133,7 +133,7 @@ def train_test(classifier='svm', n=1, k=5, distance_metric='cosine'):
     if classifier == 'svm':
         cls = SVMClassifier(kernel='linear')
     elif classifier == 'naive_bayes':
-        cls = CustomNaiveBayes()
+        cls = CustomNaiveBayes(mode=nb_mode, alpha=nb_alpha)
     elif classifier == 'knn':
         cls = CustomKNN(k, distance_metric)
 
@@ -185,9 +185,11 @@ def main():
     metric = 'euclidean'
     n = 1
     k = 2
+    nb_mode = 'categorical'
+    alpha = 0.5
 
     print(f"{type=}, {n=}, {k=}, {metric=}")
-    train_test(type, n, k, distance_metric=metric)
+    train_test(type, n, k, distance_metric=metric, nb_mode=nb_mode, nb_alpha=alpha)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import numpy as np
 from abs_custom_classifier_with_feature_generator import CustomClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import CategoricalNB
 
 """
 Implement a Naive Bayes classifier with required functions:
@@ -12,10 +13,11 @@ predict(test_features): to predict test labels
 
 class CustomNaiveBayes(CustomClassifier):
 
-    def __init__(self, alpha=1.0):
+    def __init__(self, mode='gaussian', alpha=1.0):
         """ """
         super().__init__()
 
+        self.mode = mode
         self.alpha = alpha
         self.prior = None
         self.classifier = None
@@ -29,7 +31,10 @@ class CustomNaiveBayes(CustomClassifier):
         
         print(priors)
 
-        self.classifier = GaussianNB(priors=priors)
+        if self.mode == 'gaussian':
+            self.classifier = GaussianNB(priors=priors)
+        elif self.mode == 'categorical':
+            self.classifier = CategoricalNB(alpha=self.alpha, class_prior=priors)
         self.classifier.fit(train_feats, train_labels)
 
         self.is_trained = True
