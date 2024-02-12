@@ -37,7 +37,6 @@ class CustomKNN(CustomClassifier):
         Predict labels of `test_feats`
         
         :param `test_feats`: features of test set
-        :param `method`: method with which to calculate distances, defaults to 'cosine'
         :return `predictions`: list of predicted labels
         """
 
@@ -45,27 +44,33 @@ class CustomKNN(CustomClassifier):
 
         # 2D array of distances between all test and all training samples
         # Shape (Test X Train)
-        distance_values = cdist(test_feats, self.train_feats, metric=self.distance_metric)
-        print(np.shape(distance_values))
+        distance_matrix = cdist(test_feats, self.train_feats, metric=self.distance_metric)
+        print(np.shape(distance_matrix))
 
         predictions = []
-        
-        for distances_list in distance_values:
-            # get indexes for k nearest neighbours
-            # from https://stackoverflow.com/questions/6910641/how-do-i-get-indices-of-n-maximum-values-in-a-numpy-array
-            # k_nearest_neighbours_indexes = np.argpartition(distances_list, -self.k)[-self.k:]
-            
-            # my own version
-            sorted_nearest_distances = sorted(list(enumerate(distances_list)), key=lambda x: x[-1])[-self.k:]
-            # k_nearest_neighbours_indexes = list(map(lambda x: x[0], sorted_nearest_distances))
-            k_nearest_neighbours_indexes = [i for i, value in sorted_nearest_distances]
-            
-            # map indexes to labels from the train set
-            # k_nearest_neighbours_labels = list(map(lambda x: self.train_labels[x], k_nearest_neighbours_indexes))
-            k_nearest_neighbours_labels = [self.train_labels[i] for i in k_nearest_neighbours_indexes]
-            
+
+        for distance_vector in distance_matrix:
+            # get distances to all train vectors
+            # (not sure if it works that way)
+
+            # store indexes
+            distance_vector_with_indexes = list(enumerate(distance_vector))
+
+            # sort by distance
+            sorted_distances_with_indexes = sorted(distance_vector_with_indexes, key=lambda x: x[-1])
+
+            # extract indexes
+            sorted_indexes = [i for i, _ in sorted_distances_with_indexes]
+
+            # truncate indexes for k lowest distance (nearer means lower distance)
+            k_nearest_indexes = sorted_indexes[:self.k]
+
+            # map indexes to labels
+            k_nearest_labels = [self.train_labels[i] for i in k_nearest_indexes]
+
             # take the most common label
-            most_common_label = mode(k_nearest_neighbours_labels)
-            predictions.append(most_common_label)
+            prediction = mode(k_nearest_labels)
+
+            predictions.append(prediction)
 
         return predictions
