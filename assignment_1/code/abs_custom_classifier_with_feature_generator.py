@@ -1,6 +1,4 @@
 import abc
-import sys
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 import numpy as np
 import pickle
 import os.path as path
@@ -88,7 +86,7 @@ class CustomClassifier(abc.ABC):
         return vocab
     
 
-    def get_features(self, text_list, n=1, tfidf=False):
+    def get_features(self, text_list, n=1):
         """
         :param `text_list`: list of preprocessed tweets, either tokenized or not
         :param `n`: length of gram in N-Hot encoded array, default 1
@@ -114,20 +112,7 @@ class CustomClassifier(abc.ABC):
                     if tweet_ngram == vocab_ngram:
                         features_array[ngram_tweet_index][vocab_index] += 1
 
-        if tfidf:
-            return self.tf_idf(features_array)
         return features_array
-
-    def tf_idf(self, text_feats):
-        """
-        transforms a sparse matrix of (n_samples, n_features) into a tf-idf normalized
-        sparse matrix of (n_samples, n_features)
-        :param `text_feats`: matrix of N-hot encoded samples
-        :return: tf-idf normalized matrix of N-hot encoded samples
-        """
-        tfidf_transformer = TfidfTransformer().fit(text_feats)
-        return tfidf_transformer.transform(text_feats)
-
 
     # @abc.abstractmethod
     # def fit(self, train_features, train_labels):
