@@ -184,9 +184,9 @@ def main():
     # settings
     metrics = ['euclidean', 'cosine']
 
-    for n in range(1, 6):
-        for k in range(1, 11):
-            for metric in metrics:
+    for metric in metrics:
+        for n in range(1, 6):
+            for k in range(1, 11):
                 print(f"type='knn', {n=}, {k=}, {metric=}")
                 train_test('knn', n, k, distance_metric=metric)
 
