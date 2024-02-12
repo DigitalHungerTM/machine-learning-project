@@ -1,5 +1,6 @@
 import numpy as np
 from abs_custom_classifier_with_feature_generator import CustomClassifier
+from sklearn.naive_bayes import GaussianNB
 
 """
 Implement a Naive Bayes classifier with required functions:
@@ -19,10 +20,17 @@ class CustomNaiveBayes(CustomClassifier):
         self.prior = None
         self.classifier = None
 
-    def fit(self, train_feats, train_labels):
+    def fit(self, train_feats, train_labels: list[int]):
         """ Calculate the priors, fit training data for Naive Bayes classifier """
 
-        self.classifier = []
+        prior_0 = train_labels.count(0) / len(train_labels)
+        prior_1 = train_labels.count(1) / len(train_labels)
+        priors = (prior_0, prior_1)
+        
+        print(priors)
+
+        self.classifier = GaussianNB(priors=priors)
+        self.classifier.fit(train_feats, train_labels)
 
         self.is_trained = True
         return self
@@ -33,6 +41,5 @@ class CustomNaiveBayes(CustomClassifier):
         assert self.is_trained, 'Model must be trained before predicting'
 
         # Use the scikit-learn predict function
-        predictions = []
+        predictions = self.classifier.predict(test_feats)
         return predictions
-

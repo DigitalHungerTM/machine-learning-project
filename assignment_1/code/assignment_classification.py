@@ -1,6 +1,5 @@
 import os
 import re
-import sys
 import numpy as np
 import pandas as pd
 from sklearn import metrics
@@ -57,7 +56,7 @@ def preprocess_dataset(text_list: list[str]):
                         ]).lower() # de-capitalize
         tweet = re.sub(r'[^\w\s]', '', tweet) # remove anything that is not a word or whitespace (punctuation and emojis)
         tweet = unidecode(tweet) # replace accented letters (e.g., ë and à) with their unicode counterparts (e and a)
-        tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
+        # tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
         preprocessed_text_list.append(tweet)
 
     return preprocessed_text_list
@@ -153,8 +152,8 @@ def train_test(classifier='svm', n=1, k=5, distance_metric='cosine'):
     evaluation_csv_string = evaluate(test_labels, predicted_test_labels)
 
     print("saving evaluation")
-    with open("reporting/knn_spam.csv", 'a') as outfile:
-        outfile.write(f"{classifier},{distance_metric},{n},{k},{evaluation_csv_string}\n")
+    # with open("reporting/knn_spam.csv", 'a') as outfile:
+    #     outfile.write(f"{classifier},{distance_metric},{n},{k},{evaluation_csv_string}\n")
 
 
 def cross_validate(n_fold=10, classifier='svm'):
@@ -182,13 +181,13 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 def main():
     # settings
-    metrics = ['euclidean', 'cosine']
+    type = 'naive_bayes'
+    metric = 'euclidean'
+    n = 1
+    k = 2
 
-    for metric in metrics:
-        for n in range(1, 6):
-            for k in range(1, 11):
-                print(f"type='knn', {n=}, {k=}, {metric=}")
-                train_test('knn', n, k, distance_metric=metric)
+    print(f"{type=}, {n=}, {k=}, {metric=}")
+    train_test(type, n, k, distance_metric=metric)
 
 
 if __name__ == "__main__":
