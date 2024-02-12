@@ -112,7 +112,7 @@ f1:        {np.round(macro_f1, 3)}
     return csv_string
 
 
-def train_test(classifier='svm', n=1, k=5):
+def train_test(classifier='svm', n=1, k=5, distance_metric='cosine'):
     """
     loads data, preprocesses, fits on train data and predicts labels for test data,
     then evaluates
@@ -135,7 +135,7 @@ def train_test(classifier='svm', n=1, k=5):
     elif classifier == 'naive_bayes':
         cls = CustomNaiveBayes()
     elif classifier == 'knn':
-        cls = CustomKNN(k=5, distance_metric='cosine')
+        cls = CustomKNN(k, distance_metric)
 
     print("getting features", file=sys.stderr)
     train_feats = cls.get_features(train_data, n)
@@ -176,13 +176,14 @@ def cross_validate(n_fold=10, classifier='svm'):
 
 
 def main():
-    # training knn doesn't give expected results, everything keeps being the same for different values of k
-    # maybe this works better based on characters
-    # TODO: investigate
-    n=2
-    for k in range(1,6):
-        print(f"type='knn', {n=}, {k=}", file=sys.stderr)
-        train_test('knn', n, k)
+    # settings
+    n=4
+    k=15
+    distance_metric = 'euclidean'
+
+
+    print(f"type='knn', {n=}, {k=}", file=sys.stderr)
+    train_test('knn', n, k, distance_metric=distance_metric)
 
 
 if __name__ == "__main__":

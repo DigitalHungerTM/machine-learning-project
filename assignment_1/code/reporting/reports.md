@@ -13,9 +13,7 @@ Mathijs Afman - s4765079
 
 ## log
 
-Everything went pretty smoothly up until the first test run of the provided SVM
-classifier, where I found out the reason for storing the vocabulary of the training
-set (the hard way, after fitting a model and attempting to predict on test data).
+Everything went pretty smoothly up until the first test run of the provided SVM classifier, where I found out the reason for storing the vocabulary of the training set (the hard way, after fitting a model and attempting to predict on test data).
 
 ### Log of the first succesful run of the provided SVM classifier
 
@@ -171,6 +169,8 @@ vocab pickle found, loading vocab pickle
             recall:    0.701
             f1:        0.701
 ```
+
+I found the bug that accuracy wouldn't change with k, it was resetting in the provided code.
 
 ## feature extraction method
 
