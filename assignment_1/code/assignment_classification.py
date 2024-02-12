@@ -153,8 +153,8 @@ def train_test(classifier='svm', n=1, k=5, distance_metric='cosine'):
     evaluation_csv_string = evaluate(test_labels, predicted_test_labels)
 
     print("saving evaluation")
-    with open("reporting/knn_spam.csv", 'w') as outfile:
-        outfile.write(f"{classifier},{distance_metric},{n},{k},{evaluation_csv_string}")
+    with open("reporting/knn_spam.csv", 'a') as outfile:
+        outfile.write(f"{classifier},{distance_metric},{n},{k},{evaluation_csv_string}\n")
 
 
 def cross_validate(n_fold=10, classifier='svm'):
