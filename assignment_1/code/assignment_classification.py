@@ -1,5 +1,6 @@
 import os
 import re
+from typing import Literal
 import numpy as np
 import pandas as pd
 from sklearn import metrics
@@ -8,6 +9,7 @@ from custom_naive_bayes import CustomNaiveBayes
 from sklearn_svm_classifier import SVMClassifier
 from sklearn.utils import shuffle
 from unidecode import unidecode
+from math import floor
 
 
 ##################################################################
@@ -108,11 +110,26 @@ f1:        {np.round(macro_f1, 3)}
         """
     )
 
-    csv_string = f"{accuracy},{precision},{recall},{f1},{macro_precision},{macro_recall},{macro_f1}"
-    return csv_string
+    results = {
+        'accuracy': accuracy,
+        'precision': precision,
+        'recall': recall,
+        'f1': f1,
+        'macro_precision': macro_precision,
+        'macro_recall': macro_recall,
+        'macro_f1': macro_f1
+    }
+    return results
 
 
-def train_test(classifier='svm', n=1, k=5, distance_metric='cosine', nb_mode='gaussian', nb_alpha=1.0):
+def train_test(data,
+               classifier: Literal['svm', 'knn', 'naive_bayes']='svm',
+               n: int=2,
+               k: int=5,
+               distance_metric: Literal['euclidean', 'cosine']='euclidean',
+               nb_mode: Literal['gaussian', 'categorical']='gaussian',
+               nb_alpha: float=1.0
+               ):
     """
     loads data, preprocesses, fits on train data and predicts labels for test data,
     then evaluates
@@ -120,13 +137,10 @@ def train_test(classifier='svm', n=1, k=5, distance_metric='cosine', nb_mode='ga
     :param `n`: number of tokens that the n-grams should contain, default is 1
     :param `k`: number of nearest neighbours for the knn classifier, default is 5
     """
-    print("reading data")
-    train_data, train_labels = read_dataset('data', 'CT22_dutch_1B_claim_train')
-    test_data, test_labels = read_dataset('data', 'CT22_dutch_1B_claim_dev_test')
 
     print("processing data")
-    train_data = preprocess_dataset(train_data)
-    test_data = preprocess_dataset(test_data)
+    train_data = preprocess_dataset(data['train']['data'])
+    test_data = preprocess_dataset(data['test']['data'])
 
 
     # Create a your custom classifier
@@ -143,53 +157,70 @@ def train_test(classifier='svm', n=1, k=5, distance_metric='cosine', nb_mode='ga
 
     
     print("training classifier")
-    cls.fit(train_feats, train_labels)
+    cls.fit(train_feats, data['train']['labels'])
 
     print("predicting labels")
     predicted_test_labels = cls.predict(test_feats)
 
     print("evaluating")
-    evaluation_csv_string = evaluate(test_labels, predicted_test_labels)
-
-    print("saving evaluation")
-    # with open("reporting/knn_spam.csv", 'a') as outfile:
-    #     outfile.write(f"{classifier},{distance_metric},{n},{k},{evaluation_csv_string}\n")
+    results = evaluate(data['test']['labels'], predicted_test_labels)
+    return results
 
 
-def cross_validate(n_fold=10, classifier='svm'):
+def cross_validate(data, n_fold=10, classifier='svm', n=2, k=5, distance_metric='euclidean', nb_mode='gaussian', nb_alpha=1.0):
     """
-    Implement N-fold (n_fold) cross-validation by randomly splitting taining data/features into N-fold
-    Store f1-mesure scores in a list for result of each fold and return this list
-    Check main() for using required functions
-    >>> cross_validate(n_fold=3, classifier='svm')
-    [0.5, 0.4, 0.6]
+    cross validates n folds of the classifier
+    :param `data`: dict containing train and test data and labels
+    :param `n_fold`: number of folds for which the classifier should be compared, default 10
+    :param `classifier`: type of classifier
     """
 
-    train_data, train_labels = read_dataset('tweet_classification_dataset', 'train')
-
-    # Shuffle train data and tran labels with the same indexes (random_state for reproducing same shuffling)
-    train_data, train_labels = shuffle(train_data, train_labels, random_state=0)
+    # Shuffle train data and train labels with the same indexes (random_state for reproducing same shuffling)
+    data['train']['data'], data['train']['labels'] = shuffle(data['train']['data'], data['train']['labels'], random_state=0)
 
     # Split training data and labels into N folds
-
     scores = []
+    start = 0
+    end = len(data['train']['data'])
+    step = floor(len(data['train']['data'])/n_fold)
+    for i in range(start, end, step):
+        # make a new dict with the cuts
+        fold_data = {
+            'train': {
+                'data': data['train']['data'][i:i+step],
+                'labels': data['train']['labels'][i:i+step],
+            },
+            'test': {
+                'data': data['test']['data'],
+                'labels': data['test']['labels']
+            }
+        }
+        results = train_test(fold_data, classifier, n, k, distance_metric, nb_mode, nb_alpha)
+        scores.append(results['macro_f1'])
 
-    print(f'Average [evaluation measures] for {n_fold}-fold: {np.mean(np.array(scores))}')
+
+    print(f'Average macro f1 score for {n_fold}-fold: {np.mean(np.array(scores))}')
 
     return np.mean(np.array(scores))
 
 
 def main():
-    # settings
-    type = 'naive_bayes'
-    metric = 'euclidean'
-    n = 1
-    k = 2
-    nb_mode = 'categorical'
-    alpha = 0.5
+    train_data, train_labels = read_dataset('data', 'CT22_dutch_1B_claim_train')
+    test_data, test_labels = read_dataset('data', 'CT22_dutch_1B_claim_dev_test')
 
-    print(f"{type=}, {n=}, {k=}, {metric=}")
-    train_test(type, n, k, distance_metric=metric, nb_mode=nb_mode, nb_alpha=alpha)
+    data_dict = {
+        'train': {
+            'data': train_data,
+            'labels': train_labels
+        },
+        'test': {
+            'data': test_data,
+            'labels': test_labels
+        }
+    }
+
+    # train_test(data=data_dict, classifier='naive_bayes', n=1, k=5, distance_metric='euclidean', nb_mode='gaussian', nb_alpha=1.0)
+    cross_validate(data=data_dict, n_fold=20, classifier='naive_bayes', n=1, nb_mode='gaussian', nb_alpha=1.0)
 
 
 if __name__ == "__main__":
