@@ -182,7 +182,7 @@ def cross_validate(data, n_fold=10, classifier='svm', n=2, k=5, distance_metric=
     scores = []
     start = 0
     end = len(data['train']['data'])
-    step = floor(len(data['train']['data'])/n_fold)
+    step = floor(len(data['train']['data'])/n_fold) # last item is left out because of flooring
     for i in range(start, end, step):
         # make a new dict with the cuts
         fold_data = {
