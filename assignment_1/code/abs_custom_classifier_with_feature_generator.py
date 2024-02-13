@@ -2,6 +2,7 @@ import abc
 import numpy as np
 import pickle
 import os.path as path
+from sklearn.feature_extraction.text import TfidfTransformer
 
 """
 Implement a classifier with required functions:
@@ -112,7 +113,17 @@ class CustomClassifier(abc.ABC):
                     if tweet_ngram == vocab_ngram:
                         features_array[ngram_tweet_index][vocab_index] += 1
 
-        return features_array
+        return self.tf_idf(features_array)
+    
+    def tf_idf(self, text_feats):
+        """
+        transforms a sparse matrix of (n_samples, n_features) into a tf-idf normalized
+        sparse matrix of (n_samples, n_features)
+        :param `text_feats`: matrix of N-hot encoded samples
+        :return: tf-idf normalized matrix of N-hot encoded samples
+        """
+        tfidf_transformer = TfidfTransformer().fit(text_feats)
+        return tfidf_transformer.transform(text_feats).toarray()
 
     # @abc.abstractmethod
     # def fit(self, train_features, train_labels):
