@@ -206,18 +206,26 @@ def main():
     
     # general
     classifier = 'knn'
-    n = 2
+    n = 3
 
     # knn
-    k = 5
+    k = 7
     distance_metric = 'cosine'
 
     # cross validation
     n_fold = 10
 
-    # run train_test first to make sure the vocab is generated
-    train_test(    data_dict, classifier, n, k, distance_metric)
-    cross_validate(data_dict, classifier, n, k, distance_metric, n_fold)
+
+    for distance_metric in ['euclidean', 'cosine']:
+        for n in range(1, 5):
+            for k in range(1, 8):
+                # run train_test first to make sure the vocab is generated
+                train_test(    data_dict, classifier, n, k, distance_metric)
+                avg_macro_f1 = cross_validate(data_dict, classifier, n, k, distance_metric, n_fold)
+
+                # write settings and n-fold result to csv file
+                with open("reporting/n_fold.csv", 'a') as csv_outfile:
+                    csv_outfile.write(f"{classifier},{distance_metric},{n},{k},{avg_macro_f1}\n")
 
 
 if __name__ == "__main__":

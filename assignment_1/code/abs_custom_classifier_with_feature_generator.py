@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import os.path as path
 from sklearn.feature_extraction.text import TfidfTransformer
+from itertools import chain
 
 """
 Implement a classifier with required functions:
@@ -18,6 +19,8 @@ class CustomClassifier(abc.ABC):
         self.counter = None
         self.vocab_generated = False
         self.train_features_generated = False
+        self.vocab = None
+        self.ngram_documents = None
     
     def n_gram_ify(self, documents: list[list[str]] | list[str], n):
         """
@@ -71,10 +74,8 @@ class CustomClassifier(abc.ABC):
             if vocab_with_meta_data['n'] == n:
                 return vocab_with_meta_data['vocab'] # early escape
 
-        vocab = set()
-        for ngram_doc in ngram_documents:
-            for ngram in ngram_doc:
-             vocab.add(ngram)
+        ngrams = list(chain.from_iterable(ngram_documents))
+        vocab = set(ngrams) # only unique ngrams
         vocab = tuple(vocab) # tuples are ordered and unmutable
 
         # store vocab with correct metadata
@@ -109,15 +110,15 @@ class CustomClassifier(abc.ABC):
         """
 
         # convert documents to ngrams
-        ngram_documents = self.n_gram_ify(documents, n)
+        self.ngram_documents = self.n_gram_ify(documents, n)
 
         # get the vocab
-        vocab = self.get_vocab(ngram_documents, n)
+        self.vocab = self.get_vocab(self.ngram_documents, n)
 
-        features_array = np.zeros(shape=(len(ngram_documents), len(vocab))) # make a 2D matrix filled with zeros
+        features_array = np.zeros(shape=(len(self.ngram_documents), len(self.vocab))) # make a 2D matrix filled with zeros
 
-        for ngram_document_index, ngram_doc in enumerate(ngram_documents):
-            for vocab_index, vocab_ngram in enumerate(vocab):
+        for ngram_document_index, ngram_doc in enumerate(self.ngram_documents):
+            for vocab_index, vocab_ngram in enumerate(self.vocab):
                 features_array[ngram_document_index][vocab_index] = ngram_doc.count(vocab_ngram)
 
         return self.tf_idf(features_array)
