@@ -13,26 +13,26 @@ from math import floor
 
 def read_dataset(folder: str, split: str):
     """
-    reads tsv file and gives tweets and their labels
+    reads tsv file and gives documents and their labels
     
     :param `folder`: relative folder path
     :param `split`: filename without extension
-    :return `texts`: list of tweets
+    :return `documents`: list of documents
     :return `labels`: corresponding labels
     """
     inputf = open(os.path.join(folder, f'{split}.tsv'), encoding='utf-8')
     inputdf = pd.read_csv(inputf, sep="\t", encoding='utf-8', header=0)
 
-    texts = inputdf.tweet_text.to_list()
+    documents = inputdf.tweet_text.to_list()
     labels = inputdf.class_label.to_list()
 
-    assert len(texts) == len(labels), 'Text and label files should have same number of lines..'
+    assert len(documents) == len(labels), 'Text and label files should have same number of lines..'
     # print(f'Number of samples: {len(texts)}')
 
-    return texts, labels
+    return documents, labels
 
 
-def preprocess_dataset(text_list: list[str]):
+def preprocess_dataset(documents: list[str]):
     """
     Return the list of sentences after preprocessing. Example:
     >>> preprocess_dataset(['The quick Brown fOx #HASTAG-1234 @USER-XYZ'])
@@ -46,21 +46,21 @@ def preprocess_dataset(text_list: list[str]):
     """
 
     preprocessed_text_list = []
-    for tweet in text_list:
-        tweet = " ".join([word for word in tweet.split()
+    for doc in documents:
+        doc = " ".join([word for word in doc.split()
                             if not word.startswith("@") # remove tags
                             and not word.startswith("#") # remove hashtags
                             and not word.startswith("http") # remove links
                         ]).lower() # de-capitalize
-        tweet = re.sub(r'[^\w\s]', '', tweet) # remove anything that is not a word or whitespace (punctuation and emojis)
-        tweet = unidecode(tweet) # replace accented letters (e.g., ë and à) with their unicode counterparts (e and a)
-        # tweet = tweet.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
-        preprocessed_text_list.append(tweet)
+        doc = re.sub(r'[^\w\s]', '', doc) # remove anything that is not a word or whitespace (punctuation and emojis)
+        doc = unidecode(doc) # replace accented letters (e.g., ë and à) with their unicode counterparts (e and a)
+        # doc = doc.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
+        preprocessed_text_list.append(doc)
 
     return preprocessed_text_list
 
 
-def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
+def evaluate(true_labels, predicted_labels) -> dict[Literal['accuracy', 'precision', 'macro_precision', 'recall', 'macro_recall', 'f1', 'macro_f1'], float]:
     """
     Print accuracy, precision, recall and f1 metrics for each classes and macro average.
 
@@ -119,6 +119,7 @@ def train_test(data,
     :param `n`: number of tokens that the n-grams should contain, default is 1
     :param `k`: number of nearest neighbours for the knn classifier, default is 5
     """
+    # do some input checking
     assert classifier in ['svm', 'knn'], f'{classifier} is not a known classifier'
     assert n >= 1, 'n is not 1 or larger'
     assert k >= 1, 'k is not 1 or larger'
@@ -126,18 +127,17 @@ def train_test(data,
         assert distance_metric in ['euclidean', 'cosine'], f'{distance_metric} is not a valid distance metric'
 
     print("processing data")
-    train_data = preprocess_dataset(data['train']['data'])
-    test_data = preprocess_dataset(data['test']['data'])
+    preproc_train_data = preprocess_dataset(data['train']['documents'])
+    preproc_test_data = preprocess_dataset(data['test']['documents'])
 
-    # Create a your custom classifier
     if classifier == 'svm':
         cls = SVMClassifier(kernel='linear')
     elif classifier == 'knn':
         cls = CustomKNN(k, distance_metric)
 
     print("getting features")
-    train_feats = cls.get_features(train_data, n)
-    test_feats = cls.get_features(test_data, n)
+    train_feats = cls.get_features(preproc_train_data, n)
+    test_feats = cls.get_features(preproc_test_data, n)
 
     print("training classifier")
     cls.fit(train_feats, data['train']['labels'])
@@ -150,7 +150,7 @@ def train_test(data,
     return results
 
 
-def cross_validate(data, n_fold=10, classifier='svm', n=2, k=5, distance_metric='euclidean'):
+def cross_validate(data, classifier, n, k, distance_metric, n_fold=10):
     """
     cross validates n folds of the classifier
     :param `data`: dict containing train and test data and labels
@@ -159,13 +159,13 @@ def cross_validate(data, n_fold=10, classifier='svm', n=2, k=5, distance_metric=
     """
 
     # Shuffle train data and train labels with the same indexes (random_state for reproducing same shuffling)
-    data['train']['data'], data['train']['labels'] = shuffle(data['train']['data'], data['train']['labels'], random_state=0)
+    data['train']['documents'], data['train']['labels'] = shuffle(data['train']['documents'], data['train']['labels'], random_state=0)
 
     # Split training data and labels into N folds
     scores = []
     start = 0
-    end = len(data['train']['data'])
-    step = floor(len(data['train']['data'])/n_fold)
+    end = len(data['train']['documents'])
+    step = floor(len(data['train']['documents'])/n_fold)
     # if n-fold division result is not integer, last item is left out because of flooring
     # this shouldn't matter because the shuffle is random (except it isn't because `random_state=0`)
 
@@ -173,11 +173,11 @@ def cross_validate(data, n_fold=10, classifier='svm', n=2, k=5, distance_metric=
         # make a new dict with the cuts
         fold_data = {
             'train': {
-                'data': data['train']['data'][i:i+step],
+                'documents': data['train']['documents'][i:i+step],
                 'labels': data['train']['labels'][i:i+step],
             },
             'test': {
-                'data': data['test']['data'],
+                'documents': data['test']['documents'],
                 'labels': data['test']['labels']
             }
         }
@@ -195,11 +195,11 @@ def main():
 
     data_dict = {
         'train': {
-            'data': train_data,
+            'documents': train_data,
             'labels': train_labels
         },
         'test': {
-            'data': test_data,
+            'documents': test_data,
             'labels': test_labels
         }
     }
@@ -215,8 +215,9 @@ def main():
     # cross validation
     n_fold = 10
 
-    train_test(    data_dict,         classifier, n, k, distance_metric)
-    cross_validate(data_dict, n_fold, classifier, n, k, distance_metric)
+    # run train_test first to make sure the vocab is generated
+    train_test(    data_dict, classifier, n, k, distance_metric)
+    cross_validate(data_dict, classifier, n, k, distance_metric, n_fold)
 
 
 if __name__ == "__main__":
