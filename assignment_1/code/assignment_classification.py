@@ -51,9 +51,13 @@ def preprocess_dataset(documents: list[str]):
                             if not word.startswith("@") # remove tags
                             and not word.startswith("#") # remove hashtags
                             and not word.startswith("http") # remove links
-                        ]).lower() # de-capitalize
+                        ])
         doc = re.sub(r'[^\w\s]', '', doc) # remove anything that is not a word or whitespace (punctuation and emojis)
+        doc = re.sub(r'_', '', doc) # remove underscores
+        doc = re.sub(r'[0-9]', '', doc) # remove numbers
+        doc = re.sub(r'\s+', ' ', doc) # turn concurrent whitespace into a single whitespace
         doc = unidecode(doc) # replace accented letters (e.g., ë and à) with their unicode counterparts (e and a)
+        doc = doc.lower() # de-capitalize
         # doc = doc.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
         preprocessed_text_list.append(doc)
 
@@ -209,7 +213,7 @@ def main():
     
     # general
     classifier = 'knn'
-    n = 3
+    n = 6
 
     # knn
     k = 4
@@ -226,13 +230,12 @@ def main():
 
     # for distance_metric in ['euclidean', 'cosine']:
     #     for n in range(1, 5):
+    #         # run train_test first to make sure the vocab is generated
+    #         train_test(    data_dict, classifier, n, k, distance_metric)
     #         for k in range(1, 8):
-    #             # run train_test first to make sure the vocab is generated
-    #             train_test(    data_dict, classifier, n, k, distance_metric)
     #             avg_macro_f1 = cross_validate(data_dict, classifier, n, k, distance_metric, n_fold)
-
     #             # write settings and n-fold result to csv file
-    #             with open("reporting/n_fold.csv", 'a') as csv_outfile:
+    #             with open("reporting/n_fold_new.csv", 'a') as csv_outfile:
     #                 csv_outfile.write(f"{classifier},{distance_metric},{n},{k},{avg_macro_f1}\n")
 
     stop = perf_counter()

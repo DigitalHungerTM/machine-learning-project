@@ -114,6 +114,7 @@ class CustomClassifier(abc.ABC):
         # get the vocab
         # vocab, by its nature, has only unique items
         vocab = self.get_vocab(ngram_documents, n)
+        print(f'number of features: {len(vocab)}')
 
         shape = (len(ngram_documents), len(vocab))
 
