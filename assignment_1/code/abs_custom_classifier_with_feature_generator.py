@@ -4,6 +4,7 @@ import pickle
 import os.path as path
 from sklearn.feature_extraction.text import TfidfTransformer
 from itertools import chain
+from collections import Counter
 
 """
 Implement a classifier with required functions:
@@ -19,8 +20,6 @@ class CustomClassifier(abc.ABC):
         self.counter = None
         self.vocab_generated = False
         self.train_features_generated = False
-        self.vocab = None
-        self.ngram_documents = None
     
     def n_gram_ify(self, documents: list[list[str]] | list[str], n):
         """
@@ -100,7 +99,7 @@ class CustomClassifier(abc.ABC):
         tfidf_transformer = TfidfTransformer().fit(text_feats)
         return tfidf_transformer.transform(text_feats).toarray()
 
-    def get_features(self, documents, n=1):
+    def get_features(self, documents, n):
         """
         Get N-hot encoded features of documents according to vocabulary
 
@@ -110,16 +109,30 @@ class CustomClassifier(abc.ABC):
         """
 
         # convert documents to ngrams
-        self.ngram_documents = self.n_gram_ify(documents, n)
+        ngram_documents = self.n_gram_ify(documents, n)
 
         # get the vocab
-        self.vocab = self.get_vocab(self.ngram_documents, n)
+        # vocab, by its nature, has only unique items
+        vocab = self.get_vocab(ngram_documents, n)
 
-        features_array = np.zeros(shape=(len(self.ngram_documents), len(self.vocab))) # make a 2D matrix filled with zeros
+        shape = (len(ngram_documents), len(vocab))
 
-        for ngram_document_index, ngram_doc in enumerate(self.ngram_documents):
-            for vocab_index, vocab_ngram in enumerate(self.vocab):
-                features_array[ngram_document_index][vocab_index] = ngram_doc.count(vocab_ngram)
+        features_array = np.zeros(shape=shape) # make a 2D matrix filled with zeros
+
+        # populate the matrix
+        # for ngram_document_index, ngram_doc in enumerate(ngram_documents):
+        #     for vocab_index, vocab_ngram in enumerate(vocab):
+        #         features_array[ngram_document_index][vocab_index] = ngram_doc.count(vocab_ngram)
+
+        # more than twice as fast
+        for ngram_document_index, ngram_doc in enumerate(ngram_documents):
+            counts = Counter(ngram_doc)
+            for ngram in counts:
+                try:
+                    vocab_i = vocab.index(ngram)
+                    features_array[ngram_document_index][vocab_i] = counts[ngram]
+                except ValueError: # ngram encountered that does not exist in the training data
+                    pass
 
         return self.tf_idf(features_array)
 
