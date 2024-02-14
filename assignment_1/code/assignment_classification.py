@@ -107,7 +107,7 @@ f1:        {np.round(results['macro_f1'], 3)}
 
 
 def train_test(data,
-               classifier: Literal['svm', 'knn', 'naive_bayes']='svm',
+               classifier: Literal['svm', 'knn']='svm',
                n: int=2,
                k: int=5,
                distance_metric: Literal['euclidean', 'cosine']='euclidean',
@@ -132,8 +132,6 @@ def train_test(data,
     # Create a your custom classifier
     if classifier == 'svm':
         cls = SVMClassifier(kernel='linear')
-    # elif classifier == 'naive_bayes':
-    #     cls = CustomNaiveBayes(mode=nb_mode, alpha=nb_alpha)
     elif classifier == 'knn':
         cls = CustomKNN(k, distance_metric)
 
