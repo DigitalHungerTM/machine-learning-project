@@ -65,27 +65,40 @@ class CustomClassifier(abc.ABC):
         """
 
         if path.exists("data/vocab.pickle") and path.isfile("data/vocab.pickle"):
-            print("vocab pickle found, loading vocab pickle")
             with open("data/vocab.pickle", "rb") as pickle_file:
-                vocab = pickle.load(pickle_file)
+                vocab_with_meta_data = pickle.load(pickle_file)
 
             # check if vocab has the same value as given n for ngrams
-            if len(vocab[0]) == n:
-                return vocab # early escape
+            if vocab_with_meta_data['n'] == n:
+                return vocab_with_meta_data['vocab'] # early escape
 
-        print("vocab pickle not found, or n changed. generating vocab")
         vocab = set()
         for ngram_tweet in ngram_tweet_list:
             for ngram in ngram_tweet:
              vocab.add(ngram)
         vocab = tuple(vocab) # tuples are ordered and unmutable
 
+        # store vocab with correct metadata
+        vocab_with_meta_data = {
+            'n': n,
+            'vocab': vocab,
+        }
+
         with open("data/vocab.pickle", "wb") as pickle_out_file:
-            pickle.dump(vocab, pickle_out_file)
+            pickle.dump(vocab_with_meta_data, pickle_out_file)
         
         self.vocab_generated = True
         return vocab
     
+    def tf_idf(self, text_feats):
+        """
+        transforms a sparse matrix of (n_samples, n_features) into a tf-idf normalized
+        sparse matrix of (n_samples, n_features)
+        :param `text_feats`: matrix of N-hot encoded samples
+        :return: tf-idf normalized matrix of N-hot encoded samples
+        """
+        tfidf_transformer = TfidfTransformer().fit(text_feats)
+        return tfidf_transformer.transform(text_feats).toarray()
 
     def get_features(self, text_list, n=1):
         """
@@ -115,15 +128,6 @@ class CustomClassifier(abc.ABC):
 
         return self.tf_idf(features_array)
     
-    def tf_idf(self, text_feats):
-        """
-        transforms a sparse matrix of (n_samples, n_features) into a tf-idf normalized
-        sparse matrix of (n_samples, n_features)
-        :param `text_feats`: matrix of N-hot encoded samples
-        :return: tf-idf normalized matrix of N-hot encoded samples
-        """
-        tfidf_transformer = TfidfTransformer().fit(text_feats)
-        return tfidf_transformer.transform(text_feats).toarray()
 
     # @abc.abstractmethod
     # def fit(self, train_features, train_labels):

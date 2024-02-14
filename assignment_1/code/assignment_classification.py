@@ -80,45 +80,37 @@ def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
     confusion_matrix = metrics.confusion_matrix(y_true=true_labels, y_pred=predicted_labels)
     print("\nconfusion matrix\n", confusion_matrix)
 
+    results = {}
+
     # accuracy
-    accuracy = confusion_matrix.diagonal().sum() / confusion_matrix.sum()
+    results['accuracy'] = confusion_matrix.diagonal().sum() / confusion_matrix.sum()
 
     # precision
-    precision = confusion_matrix.diagonal() / confusion_matrix.sum(axis=0)
-    macro_precision = np.mean(precision)
+    results['precision'] = confusion_matrix.diagonal() / confusion_matrix.sum(axis=0)
+    results['macro_precision'] = np.mean(results['precision'])
 
     # recall
-    recall = confusion_matrix.diagonal() / confusion_matrix.sum(axis=1)
-    macro_recall = np.mean(recall)
+    results['recall'] = confusion_matrix.diagonal() / confusion_matrix.sum(axis=1)
+    results['macro_recall'] = np.mean(results['recall'])
 
     # f1 score
-    f1 = np.nan_to_num(2 * (precision * recall) / (precision + recall))
-    macro_f1 = np.mean(f1)
+    results['f1'] = np.nan_to_num(2 * (results['precision'] * results['recall']) / (results['precision'] + results['recall']))
+    results['macro_f1'] = np.mean(results['f1'])
     
     # do some nice string formatting
     print(
         f"""
-accuracy:  {np.round(accuracy, 3)}
-precision: {np.round(list(precision), 3)}
-recall:    {np.round(list(recall), 3)}
-f1:        {np.round(list(f1), 3)}
+accuracy:  {np.round(results['accuracy'], 3)}
+precision: {np.round(list(results['precision']), 3)}
+recall:    {np.round(list(results['recall']), 3)}
+f1:        {np.round(list(results['f1']), 3)}
 
 macro avg:
-precision: {np.round(macro_precision, 3)}
-recall:    {np.round(macro_recall, 3)}
-f1:        {np.round(macro_f1, 3)}
+precision: {np.round(results['macro_precision'], 3)}
+recall:    {np.round(results['macro_recall'], 3)}
+f1:        {np.round(results['macro_f1'], 3)}
         """
     )
-
-    results = {
-        'accuracy': accuracy,
-        'precision': precision,
-        'recall': recall,
-        'f1': f1,
-        'macro_precision': macro_precision,
-        'macro_recall': macro_recall,
-        'macro_f1': macro_f1
-    }
     return results
 
 
@@ -219,7 +211,7 @@ def main():
         }
     }
 
-    # train_test(data=data_dict, classifier='naive_bayes', n=1, k=5, distance_metric='euclidean', nb_mode='gaussian', nb_alpha=1.0)
+    train_test(data=data_dict, classifier='naive_bayes', n=1, k=5, distance_metric='euclidean', nb_mode='gaussian', nb_alpha=1.0)
     cross_validate(data=data_dict, n_fold=20, classifier='naive_bayes', n=1, nb_mode='gaussian', nb_alpha=1.0)
 
 
