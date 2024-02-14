@@ -5,16 +5,11 @@ import numpy as np
 import pandas as pd
 from sklearn import metrics
 from custom_knn_classifier import CustomKNN
-from custom_naive_bayes import CustomNaiveBayes
 from sklearn_svm_classifier import SVMClassifier
 from sklearn.utils import shuffle
 from unidecode import unidecode
 from math import floor
 
-
-##################################################################
-####################### DATASET FUNCTIONS ########################
-##################################################################
 
 def read_dataset(folder: str, split: str):
     """
@@ -35,6 +30,7 @@ def read_dataset(folder: str, split: str):
     # print(f'Number of samples: {len(texts)}')
 
     return texts, labels
+
 
 def preprocess_dataset(text_list: list[str]):
     """
@@ -62,10 +58,6 @@ def preprocess_dataset(text_list: list[str]):
         preprocessed_text_list.append(tweet)
 
     return preprocessed_text_list
-
-##################################################################
-####################### EVALUATION METRICS #######################
-##################################################################
 
 
 def evaluate(true_labels=[1,0,3,2,0], predicted_labels=[1,3,2,2,0]):
@@ -119,8 +111,6 @@ def train_test(data,
                n: int=2,
                k: int=5,
                distance_metric: Literal['euclidean', 'cosine']='euclidean',
-               nb_mode: Literal['gaussian', 'categorical']='gaussian',
-               nb_alpha: float=1.0
                ):
     """
     loads data, preprocesses, fits on train data and predicts labels for test data,
@@ -129,17 +119,21 @@ def train_test(data,
     :param `n`: number of tokens that the n-grams should contain, default is 1
     :param `k`: number of nearest neighbours for the knn classifier, default is 5
     """
+    assert classifier in ['svm', 'knn'], f'{classifier} is not a known classifier'
+    assert n >= 1, 'n is not 1 or larger'
+    assert k >= 1, 'k is not 1 or larger'
+    if classifier == 'knn':
+        assert distance_metric in ['euclidean', 'cosine'], f'{distance_metric} is not a valid distance metric'
 
     print("processing data")
     train_data = preprocess_dataset(data['train']['data'])
     test_data = preprocess_dataset(data['test']['data'])
 
-
     # Create a your custom classifier
     if classifier == 'svm':
         cls = SVMClassifier(kernel='linear')
-    elif classifier == 'naive_bayes':
-        cls = CustomNaiveBayes(mode=nb_mode, alpha=nb_alpha)
+    # elif classifier == 'naive_bayes':
+    #     cls = CustomNaiveBayes(mode=nb_mode, alpha=nb_alpha)
     elif classifier == 'knn':
         cls = CustomKNN(k, distance_metric)
 
@@ -147,7 +141,6 @@ def train_test(data,
     train_feats = cls.get_features(train_data, n)
     test_feats = cls.get_features(test_data, n)
 
-    
     print("training classifier")
     cls.fit(train_feats, data['train']['labels'])
 
@@ -159,7 +152,7 @@ def train_test(data,
     return results
 
 
-def cross_validate(data, n_fold=10, classifier='svm', n=2, k=5, distance_metric='euclidean', nb_mode='gaussian', nb_alpha=1.0):
+def cross_validate(data, n_fold=10, classifier='svm', n=2, k=5, distance_metric='euclidean'):
     """
     cross validates n folds of the classifier
     :param `data`: dict containing train and test data and labels
@@ -174,7 +167,10 @@ def cross_validate(data, n_fold=10, classifier='svm', n=2, k=5, distance_metric=
     scores = []
     start = 0
     end = len(data['train']['data'])
-    step = floor(len(data['train']['data'])/n_fold) # last item is left out because of flooring
+    step = floor(len(data['train']['data'])/n_fold)
+    # if n-fold division result is not integer, last item is left out because of flooring
+    # this shouldn't matter because the shuffle is random (except it isn't because `random_state=0`)
+
     for i in range(start, end, step):
         # make a new dict with the cuts
         fold_data = {
@@ -187,9 +183,8 @@ def cross_validate(data, n_fold=10, classifier='svm', n=2, k=5, distance_metric=
                 'labels': data['test']['labels']
             }
         }
-        results = train_test(fold_data, classifier, n, k, distance_metric, nb_mode, nb_alpha)
+        results = train_test(fold_data, classifier, n, k, distance_metric)
         scores.append(results['macro_f1'])
-
 
     print(f'Average macro f1 score for {n_fold}-fold: {np.mean(np.array(scores))}')
 
@@ -210,9 +205,20 @@ def main():
             'labels': test_labels
         }
     }
+    
+    # general
+    classifier = 'knn'
+    n = 2
 
-    train_test(data=data_dict, classifier='naive_bayes', n=1, k=5, distance_metric='euclidean', nb_mode='gaussian', nb_alpha=1.0)
-    cross_validate(data=data_dict, n_fold=20, classifier='naive_bayes', n=1, nb_mode='gaussian', nb_alpha=1.0)
+    # knn
+    k = 5
+    distance_metric = 'cosine'
+
+    # cross validation
+    n_fold = 10
+
+    train_test(    data_dict,         classifier, n, k, distance_metric)
+    cross_validate(data_dict, n_fold, classifier, n, k, distance_metric)
 
 
 if __name__ == "__main__":
