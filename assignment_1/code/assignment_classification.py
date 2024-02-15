@@ -20,8 +20,8 @@ def read_dataset(folder: str, split: str):
     :return `documents`: list of documents
     :return `labels`: corresponding labels
     """
-    inputf = open(os.path.join(folder, f'{split}.tsv'), encoding='utf-8')
-    inputdf = pd.read_csv(inputf, sep="\t", encoding='utf-8', header=0)
+    with open(os.path.join(folder, f'{split}.tsv'), encoding='utf-8') as inputf:
+        inputdf = pd.read_csv(inputf, sep="\t", encoding='utf-8', header=0)
 
     documents = inputdf.tweet_text.to_list()
     labels = inputdf.class_label.to_list()
@@ -194,7 +194,7 @@ def cross_validate(data, classifier, n, k, distance_metric, n_fold=10):
 
 
 def main():
-
+    # time the whole thing
     start = perf_counter()
 
     train_data, train_labels = read_dataset('data', 'CT22_dutch_1B_claim_train')
@@ -211,23 +211,21 @@ def main():
         }
     }
     
+    # final version
     # general
     classifier = 'knn'
-    n = 6
+    n = 4
 
     # knn
-    k = 4
-    distance_metric = 'cosine'
+    k = 7
+    distance_metric = 'euclidean'
 
-    # cross validation
-    n_fold = 10
-
-    # run train_test first to make sure the vocab is generated
     train_test(    data_dict, classifier, n, k, distance_metric)
 
-    # avg_macro_f1 = cross_validate(data_dict, classifier, n, k, distance_metric, n_fold)
+    #### Code for cross validation for multiple values of n and k and for both metrics####
 
-
+    # n_fold = 10
+    
     # for distance_metric in ['euclidean', 'cosine']:
     #     for n in range(1, 5):
     #         # run train_test first to make sure the vocab is generated
