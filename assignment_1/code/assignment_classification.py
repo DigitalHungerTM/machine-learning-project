@@ -1,3 +1,11 @@
+# usage: 
+"""
+$ python3 -m venv .venv
+$ source .venv/bin/activate
+$ pip3 install -r requirements.txt
+$ python3 assignment_classification.py
+"""
+
 import os
 import re
 from typing import Literal
@@ -111,17 +119,19 @@ f1:        {np.round(results['macro_f1'], 3)}
 
 
 def train_test(data,
-               classifier: Literal['svm', 'knn']='svm',
-               n: int=2,
-               k: int=5,
-               distance_metric: Literal['euclidean', 'cosine']='euclidean',
+               classifier: Literal['svm', 'knn']='knn',
+               n: int=4,
+               k: int=7,
+               distance_metric: Literal['euclidean', 'cosine']='cosine',
                ):
     """
     loads data, preprocesses, fits on train data and predicts labels for test data,
-    then evaluates
-    :param `classifier`: type of classifier you want to use, default is svm
-    :param `n`: number of tokens that the n-grams should contain, default is 1
-    :param `k`: number of nearest neighbours for the knn classifier, default is 5
+    then evaluates.
+    
+    params default to best known values.
+    :param `classifier`: type of classifier you want to use
+    :param `n`: number of tokens that the n-grams should contain
+    :param `k`: number of nearest neighbours for the knn classifier
     """
     # do some input checking
     assert classifier in ['svm', 'knn'], f'{classifier} is not a known classifier'
@@ -161,6 +171,11 @@ def cross_validate(data, classifier, n, k, distance_metric, n_fold=10):
     :param `n_fold`: number of folds for which the classifier should be compared, default 10
     :param `classifier`: type of classifier
     """
+    # remove vocabulary at data/vocab.pickle if it exists
+    try:
+        os.remove("data/vocab.pickle")
+    except FileNotFoundError:
+        pass
 
     # Shuffle train data and train labels with the same indexes (random_state for reproducing same shuffling)
     data['train']['documents'], data['train']['labels'] = shuffle(data['train']['documents'], data['train']['labels'], random_state=0)
@@ -187,6 +202,10 @@ def cross_validate(data, classifier, n, k, distance_metric, n_fold=10):
         }
         results = train_test(fold_data, classifier, n, k, distance_metric)
         scores.append(results['macro_f1'])
+        try:
+            os.remove("data/vocab.pickle") # force remove vocab to regenerate it for every fold
+        except FileNotFoundError:
+            pass
 
     print(f'Average macro f1 score for {n_fold}-fold: {np.mean(np.array(scores))}')
 
@@ -220,20 +239,20 @@ def main():
     k = 7
     distance_metric = 'euclidean'
 
+    # expect this to take ~80 seconds on reasonable hardware
     train_test(    data_dict, classifier, n, k, distance_metric)
 
-    #### Code for cross validation for multiple values of n and k and for both metrics####
+    #### Code for cross validation for multiple values of n and k and for both metrics ####
+    # uncomment below and run for cross validation
 
     # n_fold = 10
     
     # for distance_metric in ['euclidean', 'cosine']:
     #     for n in range(1, 5):
-    #         # run train_test first to make sure the vocab is generated
-    #         train_test(    data_dict, classifier, n, k, distance_metric)
     #         for k in range(1, 8):
     #             avg_macro_f1 = cross_validate(data_dict, classifier, n, k, distance_metric, n_fold)
     #             # write settings and n-fold result to csv file
-    #             with open("reporting/n_fold_new.csv", 'a') as csv_outfile:
+    #             with open("data/cross_validation.csv", 'a') as csv_outfile:
     #                 csv_outfile.write(f"{classifier},{distance_metric},{n},{k},{avg_macro_f1}\n")
 
     stop = perf_counter()
