@@ -48,18 +48,33 @@ def main():
     #     new_df = df_token[((df_token.distance_metric == metric) & (df_token.n == n))][['k', 'avg_macro_f1']]
     #     plt.plot(new_df.k, new_df.avg_macro_f1, label=f'{n=}')
 
-    for metric in ['euclidean', 'cosine']:
-        new_df_token = df_token[((df_token.distance_metric == metric) & (df_token.n == 1))]
-        plt.plot(new_df_token.k, new_df_token.avg_macro_f1, label=f'best token based with {metric}')
-    for metric in ['euclidean', 'cosine']:
+    for metric in ['cosine']:
+        new_df_token = df_token[((df_token.distance_metric == metric) & (df_token.n == 4))]
+        plt.plot(new_df_token.k, new_df_token.avg_macro_f1, label=f'word based')
+    for metric in ['cosine']:
         new_df_char = df_char[((df_char.distance_metric == metric) & (df_char.n == 4))]
-        plt.plot(new_df_char.k, new_df_char.avg_macro_f1, label=f'best character based with {metric}')
+        plt.plot(new_df_char.k, new_df_char.avg_macro_f1, label=f'character based')
+
+    # plt.legend()
+    # plt.title(f'Token vs character, best n')
+    # plt.xlabel('k')
+    # plt.ylabel('avg macro f1')
+    # plt.savefig(f'reporting/token_character_comparison.png')
+    # plt.show()
+
+    # metric = 'cosine'
+    # k = 5
+    # new_df_token = df_token[((df_token.distance_metric == metric) & (df_token.k == k))]
+    # plt.plot(new_df_token.n, new_df_token.avg_macro_f1, label=f'word based')
+    # new_df_char = df_char[((df_char.distance_metric == metric) & (df_char.k == k))]
+    # plt.plot(new_df_char.n, new_df_char.avg_macro_f1, label=f'character based')
 
     plt.legend()
-    plt.title(f'Token vs character, best n')
+    plt.title(f'word vs character')
     plt.xlabel('k')
     plt.ylabel('avg macro f1')
-    plt.savefig(f'reporting/token_character_comparison.png')
+    plt.savefig(f'reporting/word_vs_character_n.png')
+    plt.pause(0.01)
     plt.show()
 
 

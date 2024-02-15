@@ -23,6 +23,11 @@
 # │   └── CT22_dutch_1B_claim_train.tsv
 # ├── requirements.txt
 # └── sklearn_svm_classifier.py
+#
+# when running cross validation, the result will be
+# stored in a csv file in the data folder
+
+# when running, you can ignore the error about pandas and Pyarrow
 
 import os
 import re
@@ -258,7 +263,7 @@ def main():
     distance_metric = 'euclidean'
 
     # expect this to take ~80 seconds on reasonable hardware
-    train_test(    data_dict, classifier, n, k, distance_metric)
+    train_test(data_dict, classifier, n, k, distance_metric)
 
     #### Code for cross validation for multiple values of n and k and for both metrics ####
     # code below was used to test for the best options
