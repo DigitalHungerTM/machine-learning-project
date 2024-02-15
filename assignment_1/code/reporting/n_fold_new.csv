@@ -1,3 +1,4 @@
+classifier,distance_metric,n,k,avg_macro_f1
 knn,euclidean,1,1,0.5275242518550292
 knn,euclidean,1,2,0.5379051268246978
 knn,euclidean,1,3,0.5371882970942227
