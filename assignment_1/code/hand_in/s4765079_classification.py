@@ -3,14 +3,14 @@
 # $ python3 -m venv .venv
 # $ source .venv/bin/activate
 # $ pip3 install -r requirements.txt
-# $ python3 assignment_classification.py
+# $ python3 s4765079_classification.py
 
 # usage (windows)
 #
 # $ python -m venv .venv
 # $ .\.venv\Scripts\Activate.ps1
 # $ pip install -r .\requirements.txt
-# $ python .\assignment_classification.py
+# $ python .\s4765079_classification.py
 
 # make sure the file structure in the folder
 # you're running this code from looks like this
@@ -19,12 +19,10 @@
 # │   ├── CT22_dutch_1B_claim_dev_test.tsv
 # │   └── CT22_dutch_1B_claim_train.tsv
 # ├── abs_custom_classifier_with_feature_generator.py
-# ├── assignment_classification.py
+# ├── s4765079_classification.py
 # ├── custom_knn_classifier.py
 # ├── requirements.txt
 # └── sklearn_svm_classifier.py
-
-# when running, you can ignore the error about pandas and Pyarrow
 
 import os
 import re
