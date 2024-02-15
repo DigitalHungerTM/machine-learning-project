@@ -1,0 +1,8 @@
+setuptools
+wheel
+scikit-learn
+numpy
+pandas
+unidecode
+matplotlib # plotting
+PyQt5 # ubuntu fix

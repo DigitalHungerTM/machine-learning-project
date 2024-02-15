@@ -1,23 +1,41 @@
-# usage: 
-"""
-$ python3 -m venv .venv
-$ source .venv/bin/activate
-$ pip3 install -r requirements.txt
-$ python3 assignment_classification.py
-"""
+# usage (ubuntu-like): 
+#
+# $ python3 -m venv .venv
+# $ source .venv/bin/activate
+# $ pip3 install -r requirements.txt
+# $ python3 assignment_classification.py
+
+# usage (windows)
+#
+# $ python -m venv .venv
+# $ .\.venv\Scripts\Activate.ps1
+# $ pip install -r .\requirements.txt
+# $ python .\assignment_classification.py
+
+# make sure the file structure in the folder
+# you're running this code from looks like this
+# .
+# ├── abs_custom_classifier_with_feature_generator.py
+# ├── assignment_classification.py
+# ├── custom_knn_classifier.py
+# ├── data
+# │   ├── CT22_dutch_1B_claim_dev_test.tsv
+# │   └── CT22_dutch_1B_claim_train.tsv
+# ├── requirements.txt
+# └── sklearn_svm_classifier.py
 
 import os
 import re
-from typing import Literal
 import numpy as np
 import pandas as pd
-from sklearn import metrics
-from custom_knn_classifier import CustomKNN
-from sklearn_svm_classifier import SVMClassifier
-from sklearn.utils import shuffle
 from unidecode import unidecode
 from math import floor
 from time import perf_counter
+from typing import Literal
+from sklearn import metrics
+from sklearn.utils import shuffle
+from custom_knn_classifier import CustomKNN
+from sklearn_svm_classifier import SVMClassifier
 
 def read_dataset(folder: str, split: str):
     """
@@ -233,7 +251,7 @@ def main():
     # final version
     # general
     classifier = 'knn'
-    n = 4
+    n = 4 # ngrams
 
     # knn
     k = 7
@@ -243,7 +261,7 @@ def main():
     train_test(    data_dict, classifier, n, k, distance_metric)
 
     #### Code for cross validation for multiple values of n and k and for both metrics ####
-    # uncomment below and run for cross validation
+    # code below was used to test for the best options
 
     # n_fold = 10
     
@@ -254,6 +272,12 @@ def main():
     #             # write settings and n-fold result to csv file
     #             with open("data/cross_validation.csv", 'a') as csv_outfile:
     #                 csv_outfile.write(f"{classifier},{distance_metric},{n},{k},{avg_macro_f1}\n")
+
+    # use this code to do a single cross validation run
+    # n = 1
+    # k = 1
+    # n_fold = 10
+    # cross_validate(data_dict, classifier, n, k, distance_metric, n_fold)
 
     stop = perf_counter()
     print(f'took {stop-start:.2f} seconds')
