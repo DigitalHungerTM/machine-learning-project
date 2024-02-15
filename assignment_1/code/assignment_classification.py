@@ -15,17 +15,14 @@
 # make sure the file structure in the folder
 # you're running this code from looks like this
 # .
-# ├── abs_custom_classifier_with_feature_generator.py
-# ├── assignment_classification.py
-# ├── custom_knn_classifier.py
 # ├── data
 # │   ├── CT22_dutch_1B_claim_dev_test.tsv
 # │   └── CT22_dutch_1B_claim_train.tsv
+# ├── abs_custom_classifier_with_feature_generator.py
+# ├── assignment_classification.py
+# ├── custom_knn_classifier.py
 # ├── requirements.txt
 # └── sklearn_svm_classifier.py
-#
-# when running cross validation, the result will be
-# stored in a csv file in the data folder
 
 # when running, you can ignore the error about pandas and Pyarrow
 

@@ -12,16 +12,19 @@
 # $ pip install -r .\requirements.txt
 # $ python .\assignment_classification.py
 
-# make sure the file structure you're running this code from looks like this
+# make sure the file structure in the folder
+# you're running this code from looks like this
 # .
-# ├── abs_custom_classifier_with_feature_generator.py
-# ├── assignment_classification.py
-# ├── custom_knn_classifier.py
 # ├── data
 # │   ├── CT22_dutch_1B_claim_dev_test.tsv
 # │   └── CT22_dutch_1B_claim_train.tsv
+# ├── abs_custom_classifier_with_feature_generator.py
+# ├── assignment_classification.py
+# ├── custom_knn_classifier.py
 # ├── requirements.txt
 # └── sklearn_svm_classifier.py
+
+# when running, you can ignore the error about pandas and Pyarrow
 
 import os
 import re
@@ -257,7 +260,7 @@ def main():
     distance_metric = 'euclidean'
 
     # expect this to take ~80 seconds on reasonable hardware
-    train_test(    data_dict, classifier, n, k, distance_metric)
+    train_test(data_dict, classifier, n, k, distance_metric)
 
     #### Code for cross validation for multiple values of n and k and for both metrics ####
     # code below was used to test for the best options
