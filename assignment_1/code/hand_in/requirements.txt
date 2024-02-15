@@ -6,3 +6,4 @@ pandas
 unidecode
 matplotlib # plotting
 PyQt5 # ubuntu fix
+Pyarrow # pandas fix

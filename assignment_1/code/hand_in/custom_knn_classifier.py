@@ -1,20 +1,13 @@
 import numpy as np
-import scipy
 from scipy.spatial.distance import cdist
 from abs_custom_classifier_with_feature_generator import CustomClassifier
 from statistics import mode
 
-"""
-Implement a KNN classifier with required functions:
-
-fit(train_features, train_labels): to train the classifier
-predict(test_features): to predict test labels 
-"""
-
-
 class CustomKNN(CustomClassifier):
-    def __init__(self, k=5, distance_metric='cosine'):
-        """ """
+    """
+    custom implementation for KNN classification
+    """
+    def __init__(self, k, distance_metric):
         super().__init__()
 
         self.k = k
@@ -24,13 +17,17 @@ class CustomKNN(CustomClassifier):
         self.distance_metric = distance_metric
 
     def fit(self, train_feats, train_labels):
-        """ Fit training data for classifier """
+        """
+        'Fit on training data'
+
+        :param `train_feats`: features of training data
+        :param `train_labels`: corresponding labels
+        """
 
         self.train_feats = train_feats
         self.train_labels = np.array(train_labels)
 
         self.is_trained = True
-        return self
 
     def predict(self, test_feats):
         """

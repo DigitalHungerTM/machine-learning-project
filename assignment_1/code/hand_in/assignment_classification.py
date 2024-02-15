@@ -54,26 +54,20 @@ def read_dataset(folder: str, split: str):
     documents = inputdf.tweet_text.to_list()
     labels = inputdf.class_label.to_list()
 
-    assert len(documents) == len(labels), 'Text and label files should have same number of lines..'
-    # print(f'Number of samples: {len(texts)}')
+    assert len(documents) == len(labels), 'Text and label files should have same number of lines.'
 
     return documents, labels
 
 
 def preprocess_dataset(documents: list[str]):
     """
-    Return the list of sentences after preprocessing. Example:
-    >>> preprocess_dataset(['The quick Brown fOx #HASTAG-1234 @USER-XYZ'])
-    ['the quick brown fox']
-    makes everything lowercase and removes:
-    - user tags
-    - hashtags
-    - links
-    - punctuation
-    and then tokenizes
+    pre-processes the entries in the list of documents
+
+    :param `documents`: list of documents to be pre-processed
+    :return `preprocessed_documents`: list of pre-processed documents
     """
 
-    preprocessed_text_list = []
+    preprocessed_documents = []
     for doc in documents:
         doc = " ".join([word for word in doc.split()
                             if not word.startswith("@") # remove tags
@@ -86,19 +80,29 @@ def preprocess_dataset(documents: list[str]):
         doc = re.sub(r'\s+', ' ', doc) # turn concurrent whitespace into a single whitespace
         doc = unidecode(doc) # replace accented letters (e.g., ë and à) with their unicode counterparts (e and a)
         doc = doc.lower() # de-capitalize
-        # doc = doc.split() # tokenize, remove for character based (also remove the vocab pickle or this won't work)
-        preprocessed_text_list.append(doc)
+        # doc = doc.split() # tokenize, removed for character based (make sure to delete vocab when adding this back)
+        preprocessed_documents.append(doc)
 
-    return preprocessed_text_list
+    return preprocessed_documents
 
 
-def evaluate(true_labels, predicted_labels) -> dict[Literal['accuracy', 'precision', 'macro_precision', 'recall', 'macro_recall', 'f1', 'macro_f1'], float]:
+def evaluate(true_labels: list[int], predicted_labels: list[int]):
     """
-    Print accuracy, precision, recall and f1 metrics for each classes and macro average.
+    print accuracy, precision, recall and f1 metrics for each classes and macro average
+    and return a dict containing all of these values
 
-    :param `true_labels`: true labels from the test set
-    :param `predicted_labels`: predicted labels from the test set
-    :return `csv_string`: csv formatted string of accuracy and macro f1 score
+    :param `true_labels`: list of true labels from the test set
+    :param `predicted_labels`: list of predicted labels from the test set
+    :return `results`: A dictionary of the following shape:
+    >>> {
+            'accuracy': float,
+            'precision': list[float],
+            'recall': list[float],
+            'f1': list[float],
+            'macro_precision': float,
+            'macro_recall': float,
+            'macro_f1': float
+        }
     """
     
     confusion_matrix = metrics.confusion_matrix(y_true=true_labels, y_pred=predicted_labels)
@@ -145,13 +149,14 @@ def train_test(data,
                distance_metric: Literal['euclidean', 'cosine']='cosine',
                ):
     """
-    loads data, preprocesses, fits on train data and predicts labels for test data,
+    load data, preprocesses, fits on train data and predicts labels for test data,
     then evaluates.
     
     params default to best known values.
     :param `classifier`: type of classifier you want to use
     :param `n`: number of tokens that the n-grams should contain
     :param `k`: number of nearest neighbours for the knn classifier
+    :param `distance_metric`: metric with which to run the knn classifier
     """
     # do some input checking
     assert classifier in ['svm', 'knn'], f'{classifier} is not a known classifier'
@@ -186,10 +191,15 @@ def train_test(data,
 
 def cross_validate(data, classifier, n, k, distance_metric, n_fold=10):
     """
-    cross validates n folds of the classifier
+    cross validate n folds of the classifier, prints and returns the result
+
     :param `data`: dict containing train and test data and labels
-    :param `n_fold`: number of folds for which the classifier should be compared, default 10
     :param `classifier`: type of classifier
+    :param `n`: number of tokens that the n-grams should contain
+    :param `k`: number of nearest neighbours for the knn classifier
+    :param `distance_metric`: metric with which to run the knn classifier
+    :param `n_fold`: number of folds for which the classifier should be compared, default 10
+    :return `np.mean(np.array(scores))`: mean of all f1 scores obtained by cross validating
     """
     # remove vocabulary at data/vocab.pickle if it exists
     try:
@@ -206,7 +216,7 @@ def cross_validate(data, classifier, n, k, distance_metric, n_fold=10):
     end = len(data['train']['documents'])
     step = floor(len(data['train']['documents'])/n_fold)
     # if n-fold division result is not integer, last item is left out because of flooring
-    # this shouldn't matter because the shuffle is random (except it isn't because `random_state=0`)
+    # this shouldn't matter because the shuffle is random
 
     for i in range(start, end, step):
         # make a new dict with the cuts
@@ -233,8 +243,6 @@ def cross_validate(data, classifier, n, k, distance_metric, n_fold=10):
 
 
 def main():
-    # time the whole thing
-    start = perf_counter()
 
     train_data, train_labels = read_dataset('data', 'CT22_dutch_1B_claim_train')
     test_data, test_labels = read_dataset('data', 'CT22_dutch_1B_claim_dev_test')
@@ -260,7 +268,16 @@ def main():
     distance_metric = 'euclidean'
 
     # expect this to take ~80 seconds on reasonable hardware
+    # time the whole thing
+    start = perf_counter()
+    print("### final version KNN classifier ###")
     train_test(data_dict, classifier, n, k, distance_metric)
+    stop = perf_counter()
+    print(f'took {stop-start:.2f} seconds')
+
+    # this code runs the svm classifier on unigrams
+    print("\n### standard SVM classifier ###")
+    train_test(data_dict, classifier='svm', n=1)
 
     #### Code for cross validation for multiple values of n and k and for both metrics ####
     # code below was used to test for the best options
@@ -281,8 +298,6 @@ def main():
     # n_fold = 10
     # cross_validate(data_dict, classifier, n, k, distance_metric, n_fold)
 
-    stop = perf_counter()
-    print(f'took {stop-start:.2f} seconds')
 
 
 if __name__ == "__main__":
