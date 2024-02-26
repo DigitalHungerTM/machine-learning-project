@@ -1,7 +1,7 @@
 # kmeans.py
 import numpy as np
 from numpy.linalg import norm
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 type Datapoint = tuple
 type Datapoint_indexes = list[int]
@@ -10,7 +10,13 @@ type Centroid = Datapoint
 type Centroids = list[Centroid]
 
 def euclidean_distance(a, b, axis=None):
-    # calculates euclidean distance between 2 vectors, a and b.
+    """
+    Calculate Euclidean distance between vectors a and b
+
+    :param `a`: ArrayLike, vector of size N
+    :param `b`: ArrayLike, vector of size N
+    :return: distance between vectors a and b 
+    """
     a = np.array(a)
     b = np.array(b)
     return norm(a-b, axis=axis)
@@ -84,18 +90,25 @@ class KMeansClusterer:
             # we call update last so self.centroids doesn't have
             # the same centroids as self.clusters
 
-        # alternative (hopefully faster)
-        predictions = [10000]*len(labels) # every datapoint should be assigned to a centroid, so no `10000` should be left in the predictions
+        predictions = [0]*len(labels) # every datapoint is assigned to a cluster, so every value in this list will be overwritten
+        
         for centroid in self.clusters:
+        
             # get datapoint indexes for the cluster that corresponds to the centroid
             datapoint_indexes = self.clusters[centroid]
-            # map indexes to datapoints, while retaining the indexes
+
+            # take the label of the datapoint nearest to the centroid
             datapoints = [(i, self.data[i]) for i in datapoint_indexes]
-            # take index of datapoint that has closest distance to centroid
             i, _ = min(datapoints, key=lambda datapoint: euclidean_distance(centroid, datapoint[1]))
-            label = labels[i]
+            cluster_centroid_nearest_label = labels[i]
+
+            # take most common label for datapoints in the cluster
+            cluster_labels = [labels[i] for i in datapoint_indexes]
+            cluster_labels_counter = Counter(cluster_labels)
+            most_common_cluster_label = cluster_labels_counter.most_common(1)[0][0]
+
             for index in datapoint_indexes:
-                predictions[index] = label            
+                predictions[index] = most_common_cluster_label
 
         return predictions
     
