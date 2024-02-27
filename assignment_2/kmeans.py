@@ -1,7 +1,9 @@
 # kmeans.py
+from typing import Literal
 import numpy as np
 from numpy.linalg import norm
 from collections import Counter, defaultdict
+import random
 
 
 def euclidean_distance(a, b, axis=None):
@@ -35,15 +37,15 @@ class KMeansClusterer:
         self.data: list[tuple] = []
         self.centroids: list[tuple] = []
         # clusters are stored as list of datapoint indexes according to self.data
-        # this is done to use self.data as a sort of look up table later on
+        # this is done to preserve self.data as a sort of look up table for later on
         self.clusters: defaultdict[tuple, list[int]] = defaultdict(list)
 
     def initialize_clusters(self):
         """
         Initializes cluster centroids with the Forgy method
         """
-        random_indexes: list[int] = list(np.random.choice(list(range(len(self.data))), size=self.n_clusters))
-        self.centroids = list(map(lambda index: self.data[index], random_indexes))
+        # choose random unique datapoints as initial centroids
+        self.centroids = random.sample(self.data, k=self.n_clusters)
 
     def assign(self):
         """
@@ -51,7 +53,7 @@ class KMeansClusterer:
         """
         self.clusters = defaultdict(list) # empty the clusters
         for datapoint_index, datapoint in enumerate(self.data):
-            
+
             closest_centroid = min(self.centroids, key=lambda centroid: euclidean_distance(centroid, datapoint))
             
             self.clusters[closest_centroid].append(datapoint_index)
@@ -66,44 +68,74 @@ class KMeansClusterer:
             new_centroid = tuple(np.mean(cluster_datapoints, axis=0))
             self.centroids.append(new_centroid)
 
+    def fit(self, n: int):
+        """
+        Fits on data by iteratively calling `assign()` and `update()`
 
-    def fit_predict(self, data: list[tuple], labels: list[int]):
+        :param `n`: number of iterations
+        """
+        self.initialize_clusters()
+        for _ in range(n):
+            self.assign()
+            self.update()
+
+    def predict(self, mode: Literal['nearest', 'most_common']='nearest') -> list[int]:
+        """
+        Predicts label on the currently fitted clusters
+
+        :param `mode`: mode by which to choose label for the clusters
+        - nearest = label of datapoint nearest to the centroid
+        - most_common = most common label in the cluster
+
+        :return `predictions`: list of predicted labels
+        """
+
+        assert mode in ['nearest', 'most_common'], f'unknown mode for assigning labels to clusters: {mode}'
+
+        predictions = [0]*len(self.labels)
+        
+        if mode == 'nearest':
+            for centroid, cluster in self.clusters.items():
+                # take label of datapoint nearest to centroid
+                datapoints = [(i, self.data[i]) for i in cluster]
+                nearest_label_index, _ = min(datapoints, key=lambda datapoint: euclidean_distance(centroid, datapoint[1]))
+                nearest_label = self.labels[nearest_label_index]
+                for index in cluster:
+                    predictions[index] = nearest_label
+
+        elif mode == 'most_common':
+            for centroid, cluster in self.clusters.items():
+                # take most common label for datapoints in the cluster
+                cluster_labels = [self.labels[i] for i in cluster]
+                cluster_labels_counter = Counter(cluster_labels)
+                most_common_label = cluster_labels_counter.most_common(1)[0][0]
+                for index in cluster:
+                    predictions[index] = most_common_label
+
+        return predictions
+
+
+    def fit_predict(self, data: list[tuple], labels: list[int]) -> list[int]:
         """
         Fits on data and assigns labels to clusters
         
         :param `data`: list of datapoints
+
         :param `labels`: list of labels
+
+        :return `predictions`: list of predicted labels
         """
+
         assert isinstance(data, list), 'data should be a list'
         assert isinstance(data[0], tuple), 'datapoints should be tuples'
         self.data = data
-        self.initialize_clusters()
+        self.labels = labels
 
-        for _ in range(100):
-            self.assign()
-            self.update()
-            # we call update last so self.centroids doesn't have
-            # the same centroids as self.clusters
+        # fit
+        self.fit(10)
 
-        predictions = [0]*len(labels) # every datapoint is assigned to a cluster, so every value in this list will be overwritten
-        
-        for centroid in self.clusters:
-        
-            # get datapoint indexes for the cluster that corresponds to the centroid
-            datapoint_indexes = self.clusters[centroid]
-
-            # take the label of the datapoint nearest to the centroid
-            datapoints = [(i, self.data[i]) for i in datapoint_indexes]
-            i, _ = min(datapoints, key=lambda datapoint: euclidean_distance(centroid, datapoint[1]))
-            cluster_centroid_nearest_label = labels[i]
-
-            # take most common label for datapoints in the cluster
-            cluster_labels = [labels[i] for i in datapoint_indexes]
-            cluster_labels_counter = Counter(cluster_labels)
-            most_common_cluster_label = cluster_labels_counter.most_common(1)[0][0]
-
-            for index in datapoint_indexes:
-                predictions[index] = most_common_cluster_label
+        # predict
+        predictions = self.predict()
 
         return predictions
     
