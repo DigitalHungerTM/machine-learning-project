@@ -20,20 +20,17 @@ def euclidean_distance(a, b, axis=None):
 
 
 class KMeansClusterer:
-    def __init__(self, n_clusters, n_feats):
+    def __init__(self, n_clusters):
         """
         Clusterer object that fits on a dataset and labels and predicts labels.
 
         Usage:
-        >>> kmc = KMeansClusterer(n_clusters=..., n_feats=...)
+        >>> kmc = KMeansClusterer(n_clusters=...)
         predictions = kmc.fit_predict(data=..., labels=...)
         
         :param `n_clusters`: number of clusters that the clusterer should make
-        
-        :param `n_feats`: number of dimensions that a single datapoint has
         """
         self.n_clusters: int = n_clusters
-        self.n_feats: int = n_feats
         self.data: list[tuple] = []
         self.centroids: list[tuple] = []
         # clusters are stored as list of datapoint indexes according to self.data

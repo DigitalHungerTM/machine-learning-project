@@ -26,7 +26,7 @@ def main():
         data = [tuple(datapoint) for datapoint in np.load("data/data.npy")]
         labels = [int(label) for label in np.load("data/labels.npy")]
 
-        clusterer = KMeansClusterer(n_clusters=len(set(labels)), n_feats=len(data[0]))
+        clusterer = KMeansClusterer(n_clusters=len(set(labels)))
 
         ### Code for printing ari of a single run ###
 
