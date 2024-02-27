@@ -3,11 +3,6 @@ import numpy as np
 from numpy.linalg import norm
 from collections import Counter, defaultdict
 
-type Datapoint = tuple
-type Datapoint_indexes = list[int]
-type Data = list[Datapoint]
-type Centroid = Datapoint
-type Centroids = list[Centroid]
 
 def euclidean_distance(a, b, axis=None):
     """
@@ -37,11 +32,11 @@ class KMeansClusterer:
         """
         self.n_clusters: int = n_clusters
         self.n_feats: int = n_feats
-        self.data: Data = []
-        self.centroids: Centroids = []
+        self.data: list[tuple] = []
+        self.centroids: list[tuple] = []
         # clusters are stored as list of datapoint indexes according to self.data
         # this is done to use self.data as a sort of look up table later on
-        self.clusters: defaultdict[Centroid, Datapoint_indexes] = defaultdict(list)
+        self.clusters: defaultdict[tuple, list[int]] = defaultdict(list)
 
     def initialize_clusters(self):
         """
@@ -72,7 +67,7 @@ class KMeansClusterer:
             self.centroids.append(new_centroid)
 
 
-    def fit_predict(self, data: Data, labels: list[int]):
+    def fit_predict(self, data: list[tuple], labels: list[int]):
         """
         Fits on data and assigns labels to clusters
         

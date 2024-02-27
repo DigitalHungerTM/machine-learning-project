@@ -33,9 +33,6 @@ def main():
         predictions = clusterer.fit_predict(data, labels)
         ari = adjusted_rand_score(labels, predictions)
         print(f"single run ARI: {ari:.2f}")
-
-        print(f"n unique labels, true:        {len(set(labels))}")
-        print(f"n unique labels, predictions: {len(set(predictions))}")
         
         
         ### Code for obtaining ao5 of ari ###
