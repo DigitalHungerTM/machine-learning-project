@@ -1,5 +1,4 @@
 # kmeans.py
-from typing import Literal
 import numpy as np
 from numpy.linalg import norm
 from collections import Counter, defaultdict
@@ -76,38 +75,22 @@ class KMeansClusterer:
             self.assign()
             self.update()
 
-    def predict(self, mode: Literal['nearest', 'most_common']='nearest') -> list[int]:
+    def predict(self) -> list[int]:
         """
         Predicts label on the currently fitted clusters
-
-        :param `mode`: mode by which to choose label for the clusters
-        - nearest = label of datapoint nearest to the centroid
-        - most_common = most common label in the cluster
 
         :return `predictions`: list of predicted labels
         """
 
-        assert mode in ['nearest', 'most_common'], f'unknown mode for assigning labels to clusters: {mode}'
-
         predictions = [0]*len(self.labels)
-        
-        if mode == 'nearest':
-            for centroid, cluster in self.clusters.items():
-                # take label of datapoint nearest to centroid
-                datapoints = [(i, self.data[i]) for i in cluster]
-                nearest_label_index, _ = min(datapoints, key=lambda datapoint: euclidean_distance(centroid, datapoint[1]))
-                nearest_label = self.labels[nearest_label_index]
-                for index in cluster:
-                    predictions[index] = nearest_label
 
-        elif mode == 'most_common':
-            for centroid, cluster in self.clusters.items():
-                # take most common label for datapoints in the cluster
-                cluster_labels = [self.labels[i] for i in cluster]
-                cluster_labels_counter = Counter(cluster_labels)
-                most_common_label = cluster_labels_counter.most_common(1)[0][0]
-                for index in cluster:
-                    predictions[index] = most_common_label
+        for cluster in self.clusters.values():
+            # take most common label for datapoints in the cluster
+            cluster_labels = [self.labels[i] for i in cluster]
+            cluster_labels_counter = Counter(cluster_labels)
+            most_common_label = cluster_labels_counter.most_common(1)[0][0]
+            for index in cluster:
+                predictions[index] = most_common_label
 
         return predictions
 
@@ -129,7 +112,7 @@ class KMeansClusterer:
         self.labels = labels
 
         # fit
-        self.fit(10)
+        self.fit(100)
 
         # predict
         predictions = self.predict()

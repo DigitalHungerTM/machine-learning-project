@@ -9,6 +9,7 @@ from kmeans import KMeansClusterer
 def plot_confusion_matrix(true, predicted):
     """
     My own implementation of plot_confusion_matrix, as the provided one in utils.py doesn't work
+    Shows a colored plot of the confusion matrix
     
     :param `true`: ArrayLike of shape(n_samples), correct labels
     :param `predicted`: ArrayLike of shape(n_samples), predicted labels
@@ -32,13 +33,13 @@ def main():
 
         predictions = clusterer.fit_predict(data, labels)
         ari = adjusted_rand_score(labels, predictions)
-        print(f"single run ARI: {ari:.2f}")
+        print(f"single run Adjusted Rand Score:\n{ari:.3f}")
         
         
         ### Code for obtaining ao5 of ari ###
 
         # aris = []
-        # for i in range(5):
+        # for _ in range(5):
         #     predictions = clusterer.fit_predict(data, labels)
         #     ari = adjusted_rand_score(labels, predictions)
         #     print("ARI:", ari)
